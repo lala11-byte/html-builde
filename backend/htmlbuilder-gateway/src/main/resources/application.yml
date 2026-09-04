@@ -21,4 +21,4 @@ spring:
         - id: generator-service
           uri: lb://htmlbuilder-generator-service
           predicates:
-            - Path=/api/v1/generator/**,/api/v1/components/**
+            - Path=/api/v1/generator/**

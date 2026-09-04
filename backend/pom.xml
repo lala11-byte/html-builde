@@ -32,6 +32,7 @@
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <jjwt.version>0.12.3</jjwt.version>
+        <langchain4j.version>0.33.0</langchain4j.version>
     </properties>
 
     <dependencyManagement>
@@ -82,6 +83,14 @@
                 <groupId>com.htmlbuilder</groupId>
                 <artifactId>htmlbuilder-api-contract</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <!-- LangChain4j -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

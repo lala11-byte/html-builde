@@ -263,7 +263,59 @@ CREATE TABLE component_def (
 - 涉及表：`project`（id, user_id, name, created_at, updated_at）、`page`（id, project_id, title, sort_order, component_tree, created_at, updated_at）
 - 涉及服务：project-service、gateway-service
 - 前端页面：`/workspace`（项目列表）、`/editor/:projectId/:pageId`（编辑器骨架）
-4. **M4 生成器域**：generator-service 组件定义 + 生成/导出 + 前端编辑器三栏
+4. **M4 生成器域**：AI Agent 驱动的网站生成引擎（DeepSeek + 工具调用）
+
+### M4 详细需求（AI 生成器域）
+
+- **背景/目标**：基于 DeepSeek-v4-flash 大模型 + LangChain4j Agent 框架，实现 AI 驱动的网站生成引擎。用户描述需求后，Agent 自动规划网站结构、生成 HTML/CSS/JS 代码、设计配套数据库，并打包为可直接运行的项目。
+- **核心架构**：generator-service 内嵌 AI Agent，通过工具调用（Tool Calling）完成生成任务
+- **输入**：用户需求描述（自然语言，如"生成一个博客网站，有文章列表和详情页"）
+- **输出**：完整的可运行项目目录（含前端页面 + 后端 API + 数据库 + 启动脚本）
+
+验收标准（逐条对应测试用例）：
+
+**模型层：**
+- [ ] M4-1: generator-service 集成 LangChain4j 框架，通过 `OpenAiChatModel` + `OpenAiStreamingChatModel`（OpenAI 兼容接口）调用 DeepSeek-v4-flash 自定义模型供应商
+- [ ] M4-1a: `DeepSeekChatModel` 支持非流式调用（`chat()`，maxTokens=4096，用于短输出如规划 JSON）和流式调用（`streamChat()`，maxTokens=16384，用于长输出如 HTML/CSS/JS/后端代码）
+- [ ] M4-1b: 流式调用通过 `StreamingResponseHandler` + `CountDownLatch` 同步等待完整输出，超时 300 秒，防止输出截断
+
+**Agent 工具层：**
+- [ ] M4-2: 定义 Agent 工具集：`FileSystemTool`（创建目录/文件）、`DatabaseSchemaTool`（生成 SQL 建表 + 种子数据）、`WebContentTool`（生成 HTML/CSS/JS 代码）、`PackageTool`（打包项目 + 生成启动脚本）
+- [ ] M4-2a: 工具调用异常时返回友好错误信息（如 `ERROR: ...`），不暴露内部堆栈
+
+**Prompt 约束层（核心要求）：**
+- [ ] M4-3a: 每个 AI 调用使用的 Prompt 必须严格限定输出格式，明确标注"只输出 XXX，不要输出任何解释、说明、markdown 标记或代码块标记"
+- [ ] M4-3b: 规划阶段 Prompt 要求输出严格 JSON 结构（siteName/pages/tables/features），禁止模型输出无关内容
+- [ ] M4-3c: 前端代码生成 Prompt 要求用 `---FILE:` 分隔符输出每个文件，每个文件必须完整、不得使用省略号或注释占位符
+- [ ] M4-3d: 数据库生成 Prompt 要求输出完整 SQL 脚本（建表 + 种子数据），不得截断
+- [ ] M4-3e: 后端代码生成 Prompt 要求输出完整 server.js（Express + better-sqlite3 CRUD），参数化查询，不得截断
+
+**生成编排层：**
+- [ ] M4-3: Agent 接收用户需求后，自动规划网站结构并调用工具依次生成：目录结构 → 前端页面 → 数据库 → 后端 API → 打包配置
+- [ ] M4-3f: 规划阶段使用非流式调用（输出短 JSON），代码生成阶段使用流式调用（maxTokens=16384），确保长代码不截断
+- [ ] M4-3g: 每一步生成前通过 SSE 推送进度消息（如 `[规划] AI 正在分析需求...`），前端实时展示
+
+**生成质量：**
+- [ ] M4-4: 生成的网站前端包含至少 3 个页面（首页、列表页、详情页），响应式布局（Flexbox/Grid），现代 CSS 设计
+- [ ] M4-5: 生成的网站配套 SQLite 数据库，包含至少 2 张关联表（外键） + 每表至少 3 条种子数据；生成对应的 Node.js Express 后端 API（完整 CRUD）
+- [ ] M4-5a: 后端 API 使用 better-sqlite3 参数化查询（`db.prepare().run()`），返回 `{ success: true, data: ... }` JSON 格式
+- [ ] M4-6: 生成的项目可直接运行：`npm install && npm start` 启动后浏览器可访问完整网站
+
+**前端交互：**
+- [ ] M4-7: 生成过程支持流式输出进度（SSE），前端通过 `EventSource` 实时展示生成日志，最大连接时间 10 分钟
+- [ ] M4-8: 生成的项目目录通过 zt-zip 打包为 ZIP 压缩包，通过 `GET /api/v1/generator/download/{taskId}` 流式下载
+- [ ] M4-9: 前端编辑器集成 AI 生成面板：用户输入需求 → 点击生成 → 深色终端风格进度日志 → 完成后下载按钮
+
+**异常处理：**
+- [ ] M4-10: Agent 工具调用异常时返回友好错误信息，不暴露内部堆栈；流式调用超时（300s）返回明确错误提示
+- [ ] M4-11: 参数校验：需求描述为空时返回 code=400 + 可读 message
+- [ ] M4-11a: 生成结果不存在或已被清理时，下载接口返回 code=2001 + 友好提示
+
+- 涉及接口：`POST /api/v1/generator/generate`（触发生成）、`GET /api/v1/generator/progress/{taskId}`（SSE 进度）、`GET /api/v1/generator/download/{taskId}`（下载 ZIP）、`GET /api/v1/generator/tasks/{taskId}`（查询状态）
+- 涉及表：`generation_task`（id, user_id, prompt, status, output_path, error_message, created_at, updated_at）
+- 涉及服务：generator-service、gateway-service
+- 前端页面：`/editor/:projectId/:pageId`（编辑器集成 AI 生成面板）
+
 5. **M5 联调验收**：端到端流程 + 响应式 + 全量测试通过
 
 ## 10. 变更记录
@@ -271,3 +323,5 @@ CREATE TABLE component_def (
 | 日期 | 变更 |
 |---|---|
 | 2026-09-04 | 初版，确立微服务架构与核心需求 |
+| 2026-09-04 | M4 更新：AI Agent 驱动的网站生成引擎（DeepSeek + LangChain4j + 工具调用） |
+| 2026-09-04 | M4 增强：流式传输（streaming）防止输出截断、maxTokens=16384、严格 Prompt 约束、4 层验收标准拆分 |

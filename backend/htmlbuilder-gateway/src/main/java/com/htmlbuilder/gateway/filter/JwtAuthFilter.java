@@ -26,7 +26,9 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     private static final List<String> WHITE_PATHS = List.of(
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/auth/refresh"
+            "/api/v1/auth/refresh",
+            "/api/v1/generator/progress/",
+            "/api/v1/generator/download/"
     );
 
     @Value("${jwt.secret:htmlbuilder-default-secret-key-for-jwt-hs256}")

@@ -13,3 +13,8 @@ spring:
     username: root
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+# DeepSeek API 配置
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:sk-placeholder}
+  base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1}

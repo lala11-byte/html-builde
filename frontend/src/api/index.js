@@ -54,3 +54,15 @@ export function updatePage(projectId, pageId, data) {
 export function deletePage(projectId, pageId) {
   return request.delete(`/projects/${projectId}/pages/${pageId}`)
 }
+
+// === AI 生成器 ===
+
+// 提交生成任务
+export function submitGenerate(prompt) {
+  return request.post('/generator/generate', { prompt })
+}
+
+// 获取任务状态
+export function getTaskStatus(taskId) {
+  return request.get(`/generator/tasks/${taskId}`)
+}
