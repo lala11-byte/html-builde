@@ -8,14 +8,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AgentConfig {
 
-    @Value("${deepseek.api-key:sk-placeholder}")
+    @Value("${deepseek.api-key:${TOKENHUB_API_KEY:}}")
     private String apiKey;
 
-    @Value("${deepseek.base-url:https://api.deepseek.com/v1}")
+    @Value("${deepseek.base-url:http://192.200.1.213:18086/v1/messages}")
     private String baseUrl;
+
+    @Value("${deepseek.model:deepseek-v4-pro}")
+    private String modelName;
 
     @Bean
     public DeepSeekChatModel deepSeekChatModel() {
-        return new DeepSeekChatModel(apiKey, baseUrl);
+        return new DeepSeekChatModel(apiKey, baseUrl, modelName);
     }
 }

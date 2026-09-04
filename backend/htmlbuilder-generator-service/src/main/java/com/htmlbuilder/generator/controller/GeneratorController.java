@@ -7,7 +7,6 @@ import com.htmlbuilder.generator.entity.GenerationTask;
 import com.htmlbuilder.generator.service.GeneratorService;
 import com.htmlbuilder.generator.vo.TaskVO;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -39,10 +38,6 @@ public class GeneratorController {
     public Result<TaskVO> generate(
             @RequestHeader("X-User-Id") Long userId,
             @Valid @RequestBody GenerateRequest request) {
-
-        if (request.getPrompt() == null || request.getPrompt().isBlank()) {
-            return Result.fail(400, "需求描述不能为空");
-        }
 
         Long taskId = generatorService.submitTask(userId, request.getPrompt());
 

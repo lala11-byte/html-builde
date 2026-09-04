@@ -18,7 +18,8 @@ spring:
       mode: always
       schema-locations: classpath:db/init.sql
 
-# DeepSeek API 配置
+# DeepSeek-v4-pro API 配置（通过网关调用）
 deepseek:
-  api-key: ${DEEPSEEK_API_KEY:sk-placeholder}
-  base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com/v1}
+  api-key: ${TOKENHUB_API_KEY:}
+  base-url: http://192.200.1.213:18086/v1/messages
+  model: deepseek-v4-pro
