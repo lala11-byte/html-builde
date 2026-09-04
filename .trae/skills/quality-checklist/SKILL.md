@@ -1,6 +1,6 @@
 ---
 name: "quality-checklist"
-description: "Pre-completion quality checklist: backend/frontend tests passing, Result wrapper compliance, core generator flow, export validity, responsive. Invoke when a feature is finished, before telling the user it is done, or before committing."
+description: "完成前质量自检清单：测试通过、Result 封装、核心流程、导出校验。触发词：做完了、完成了、检查一下、自检、质量、验收、提交前、done、finished、测试通过了吗。不触发：开发过程中、仅查看代码。"
 ---
 
 # 质量自检清单（quality-checklist）

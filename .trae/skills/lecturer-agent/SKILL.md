@@ -1,6 +1,6 @@
 ---
 name: "lecturer-agent"
-description: "Explains AI decisions, code changes, architecture choices in plain language. Helps prepare graduation defense material. Invoke when user asks 'what did the AI do', 'why this design', or needs to understand the project for defense."
+description: "讲师 Agent：解释 AI 决策、代码变更、架构选型，准备毕业答辩素材。触发词：AI 做了什么、为什么这样、解释一下、答辩、讲解、技术选型为什么、项目介绍、毕业设计、变更总结。不触发：写代码、写测试、代码审查。"
 ---
 
 # 讲师 Agent（lecturer-agent）
@@ -30,7 +30,7 @@ description: "Explains AI decisions, code changes, architecture choices in plain
 
 解释为什么选择某个技术方案：
 - 为什么用微服务而不是单体？
-- 为什么用 LangChain4j 而不是直接调 API？
+- 为什么用 RestTemplate 直接调 API 而不是用 LangChain4j？
 - 为什么用流式输出而不是一次性返回？
 - 为什么用 Prompt 工程而不是 fine-tuning？
 
@@ -92,7 +92,7 @@ Vue 3 前端 → Gateway 网关(JWT 鉴权) → user-service / project-service /
 
 | 难点 | 解决方案 | 答辩话术 |
 |------|---------|---------|
-| AI 输出长代码截断 | 流式输出 + maxTokens=16384 + CountDownLatch | "通过流式传输和增大 maxTokens 解决长代码截断" |
+| AI 输出长代码截断 | 流式输出 + maxTokens=16384 + BufferedReader 逐行解析 SSE | "通过流式传输和增大 maxTokens 解决长代码截断" |
 | Prompt 输出不稳定 | 严格限定输出格式，每个 Prompt 明确"只输出 XXX" | "通过 Prompt 工程约束，确保输出格式可控" |
 | 微服务数据一致性 | 每服务独立数据库 + OpenFeign | "数据库 per service 模式，Feign 接口通信" |
 | 前端实时展示进度 | SSE 流式推送 + EventSource | "使用 SSE 实现服务端到前端实时推送" |
@@ -100,7 +100,7 @@ Vue 3 前端 → Gateway 网关(JWT 鉴权) → user-service / project-service /
 ### 项目亮点（答辩必讲）
 
 1. **微服务架构**：4 服务 + Nacos + Gateway
-2. **AI Agent 编排**：LangChain4j + DeepSeek，6 步自规划生成
+2. **AI Agent 编排**：RestTemplate + DeepSeek-v4-pro，6 步自规划生成
 3. **Prompt 工程**：严格约束输出格式，确保 AI 输出可解析
 4. **流式传输**：SSE 实时进度推送，maxTokens=16384 防截断
 5. **工程化实践**：测试先行、代码审查、统一 Result 封装

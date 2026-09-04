@@ -1,6 +1,6 @@
 ---
 name: "docs-maintainer"
-description: "MANDATORY documentation maintenance: updates project docs on EVERY code change. Tracks architecture, flows, and every key function. Invoke automatically after ANY file modification."
+description: "文档维护 Agent（强制）：每次代码变更后必须同步更新项目文档。触发词：改了代码要更新文档、docs、变更日志、changelog、架构文档、服务文档、README。强制触发：任何 .java/.vue/.ts/.js/.yml/.xml 文件变更后自动执行。"
 ---
 
 # 文档维护 Agent（docs-maintainer）
@@ -63,7 +63,7 @@ description: "MANDATORY documentation maintenance: updates project docs on EVERY
 ## 项目概述
 基于微服务架构的在线 HTML 生成工具。用户通过 AI 自然语言描述自动生成完整网站项目。
 
-技术栈：Vue 3 + Spring Boot 3 + Spring Cloud + Nacos + MyBatis-Plus + LangChain4j + DeepSeek
+技术栈：Vue 3 + Spring Boot 3 + Spring Cloud + Nacos + MyBatis-Plus + RestTemplate + DeepSeek-v4-pro
 
 ## 微服务拓扑
 
@@ -94,8 +94,8 @@ Vue 3 前端 (port 5173)
 | Spring Cloud Gateway | 3.x | API 网关 | 统一鉴权、路由 |
 | Nacos | 2.x | 注册中心 | 阿里巴巴开源，服务发现 |
 | MyBatis-Plus | 3.x | ORM | 逻辑删除、分页、Lambda 查询 |
-| LangChain4j | 0.x | AI Agent 框架 | Java 生态的 LLM 编排框架 |
-| DeepSeek | chat | LLM 模型 | 性价比高，支持流式输出 |
+| RestTemplate | - | HTTP 客户端 | Spring 原生，直接调用 DeepSeek API |
+| DeepSeek | v4-pro | LLM 模型 | 支持流式 SSE 输出 |
 | Vue 3 | 3.x | 前端框架 | Composition API、生态丰富 |
 | Element Plus | 2.x | UI 组件库 | Vue 3 官方推荐 |
 | Pinia | 2.x | 状态管理 | Vue 3 官方推荐 |

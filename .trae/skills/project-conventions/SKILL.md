@@ -1,6 +1,6 @@
 ---
 name: "project-conventions"
-description: "Defines microservice architecture (4 services + Nacos + MySQL per service), tech stack, layered structure, code style. Invoke when creating new files, organizing code, or unsure where to place new code."
+description: "项目结构约定：4 微服务、技术栈、目录结构、分层规范、命名约定、注解规范、模块调用链。触发词：新建文件、放哪个目录、包结构、分层、命名、注解、@TableName、@Mapper、Controller→Service→Mapper、项目结构。不触发：具体业务逻辑实现（用 backend-dev-agent）。"
 ---
 
 # 项目结构与代码风格约定（project-conventions）

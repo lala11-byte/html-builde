@@ -1,6 +1,6 @@
 ---
 name: "git-auto-commit"
-description: "Automatically commits all changes to git and pushes to remote at the end of every response. Invoke after ANY code change, file creation, or modification is completed."
+description: "Git 自动提交并推送（强制）：每次代码变更完成后必须 git add + commit + push。触发词：提交、push、commit、做完了一轮。强制触发：任何文件创建/修改/删除完成后、里程碑完成时、每次回答结束前。"
 ---
 
 # Git 自动提交并推送（git-auto-commit）

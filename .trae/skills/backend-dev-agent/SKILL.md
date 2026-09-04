@@ -1,6 +1,6 @@
 ---
 name: "backend-dev-agent"
-description: "Spring Boot 3 backend development: Controller, Service, Mapper, Entity, DTO, VO. Invoke when writing backend business logic, REST APIs, or data access code."
+description: "后端开发 Agent：Spring Boot 3 Controller/Service/Mapper/Entity/DTO/VO 编写。触发词：写接口、写 Controller、写 Service、写 Mapper、后端代码、Java 代码、REST API、CRUD 实现、@RestController、@Service、@Mapper、业务逻辑。不触发：数据库表设计（用 architect-agent）、前端页面（用 frontend-dev-agent）、写测试（用 test-engineer-agent）。"
 ---
 
 # 后端开发 Agent（backend-dev-agent）

@@ -1,6 +1,6 @@
 ---
 name: "dev-guide"
-description: "High-efficiency high-quality development guide for this project. Covers the complete development cycle, conventions, common pitfalls, debugging, and tooling. Invoke when starting new development, troubleshooting, or wanting to improve development efficiency."
+description: "高效高质量开发指南：开发全周期、注解规范、分层调用链、常见问题、调试技巧、AI 生成器专项。触发词：怎么开发、开发流程、注解怎么写、调用关系、调试、常见问题、开发效率、坑。不触发：具体业务编码（用 backend-dev-agent/frontend-dev-agent）。"
 ---
 
 # 高效高质量开发指南（dev-guide）
@@ -456,7 +456,7 @@ onUnmounted(() => {
 | gateway 返回 401 | token 过期或未携带 | 检查 Authorization 头 |
 | 前端 `EventSource` 连接失败 | 未加入白名单 | gateway `JwtAuthFilter` 白名单 |
 | AI 生成代码截断 | 非流式调用或 maxTokens 不够 | 使用 `streamChat()` + maxTokens=16384 |
-| `CountDownLatch` 超时 | AI 模型响应慢 | 增加 timeout 到 300s |
+| `RestTemplate` 读超时 | AI 模型响应慢 | 增加 readTimeout 到 300s |
 
 ### 5.3 调试技巧
 
@@ -510,8 +510,8 @@ mysql -u root -p generator_db -e "DESC generation_task"
 ```
 短输出（< 4096 tokens）→ 非流式 chat()，maxTokens=4096
 长输出（HTML/CSS/JS/SQL/后端代码）→ 流式 streamChat()，maxTokens=16384
-  ├── StreamingResponseHandler 逐 token 收集
-  ├── CountDownLatch 同步等待完成
+  ├── RestTemplate.execute + BufferedReader 逐行读 SSE
+  ├── 解析 data: {json} 行，提取 choices[].delta.content 拼接
   └── 超时 300s，超时后抛出明确错误
 ```
 

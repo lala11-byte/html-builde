@@ -1,6 +1,6 @@
 ---
 name: "router-agent"
-description: "Master router that intelligently dispatches tasks to the right role agents. Invoke as the FIRST step for any development task - it analyzes the request and activates the appropriate specialized agents."
+description: "路由 Agent 总调度：分析用户需求并分发到对应角色 Agent。触发词：复杂任务、多步骤、分发、调度、路由、先规划再做、拆解任务。不触发：单一领域任务（直接用对应 agent）、非开发任务。"
 ---
 
 # 路由 Agent（router-agent）

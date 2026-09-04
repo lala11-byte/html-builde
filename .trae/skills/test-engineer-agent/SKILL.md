@@ -1,6 +1,6 @@
 ---
 name: "test-engineer-agent"
-description: "Test engineer: JUnit 5, MockMvc, Vitest. Test-first development. Invoke when writing tests, running tests, or following test-first workflow."
+description: "测试工程师 Agent：JUnit 5 / MockMvc / Mockito / Vitest 测试编写与执行。触发词：写测试、跑测试、单元测试、集成测试、MockMvc、JUnit、Vitest、test、测试用例、回归测试、mock、@Test、test-first。不触发：写业务实现代码（用 backend-dev-agent/frontend-dev-agent）。"
 ---
 
 # 测试工程师 Agent（test-engineer-agent）

@@ -1,6 +1,6 @@
 ---
 name: "ui-design-standard"
-description: "Defines UI design rules for the HTML generator tool: design tokens, color palette, typography, spacing, component styles. Invoke when designing new pages/components or adjusting any visual style of the tool itself."
+description: "生成器工具自身 UI 设计规范：CSS 变量、设计 token、三栏布局、配色、字体、间距。触发词：设计 token、CSS 变量、颜色、样式、布局、面板、按钮样式、:root、设计规范、视觉风格。不触发：AI 生成的前端代码样式（那是 html-output-standard）。"
 ---
 
 # UI 设计规范（ui-design-standard）

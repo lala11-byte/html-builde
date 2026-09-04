@@ -1,6 +1,6 @@
 ---
 name: "project-architecture"
-description: "Complete architectural reference for the HTML Builder project. Documents microservice architecture, module internals, call chains, data flow, and component relationships. Invoke when understanding the project structure, planning cross-service changes, or onboarding."
+description: "项目架构文档：微服务拓扑、4 服务详细架构、调用链、数据流、数据库设计。触发词：架构图、微服务、调用链、数据流、项目结构总览、onboarding、跨服务修改、理解项目全貌。不触发：写代码（用对应 dev-agent）、具体规范（用 project-conventions）。"
 ---
 
 # 项目架构文档（project-architecture）
@@ -233,7 +233,7 @@ htmlbuilder-generator-service/
     │                           │
     │                           ├── Step 3: generateFrontend(prompt, plan)
     │                           │       → chatModel.streamChat(strictPrompt) [流式, maxTokens=16384]
-    │                           │       → CountDownLatch 等待完整输出
+    │                           │       → BufferedReader 逐行解析 SSE 拼接完整输出
     │                           │       → 输出 ---FILE: 分隔的 HTML/CSS/JS
     │                           │       → writeFrontendFiles() → FileSystemTool.writeFile()
     │                           │
@@ -369,8 +369,8 @@ CREATE TABLE IF NOT EXISTS generation_task (
 | 数据访问 | MyBatis-Plus | 3.5.x |
 | 数据库 | MySQL | 8.0 |
 | 鉴权 | JWT (HS256) | jjwt 0.12.x |
-| AI 框架 | LangChain4j | 0.33.0 |
-| AI 模型 | DeepSeek-v4-flash | (OpenAI 兼容接口) |
+| HTTP 客户端 | RestTemplate | Spring Boot 3 内置 |
+| AI 模型 | DeepSeek-v4-pro | 流式 SSE 输出 |
 | 生成项目依赖 | Express + better-sqlite3 | (由 AI 生成) |
 | ZIP 打包 | zt-zip | 1.17 |
 | 测试 | JUnit 5 / Mockito / MockMvc | |

@@ -1,6 +1,6 @@
 ---
 name: "html-output-standard"
-description: "Defines HTML code output standards for the online HTML generator tool: single-file self-contained, semantic tags, inline CSS/JS, responsive. Invoke when writing or modifying HTML generation logic, templates, or the export feature."
+description: "HTML 导出规范：导出产物必须单文件自包含、语义化标签、内联 CSS/JS、响应式。触发词：导出 HTML、复制代码、生成器输出、HTML 模板、export、单文件、语义标签、DOCTYPE。不触发：生成器自身 UI 样式、后端代码生成。"
 ---
 
 # HTML 输出规范（html-output-standard）

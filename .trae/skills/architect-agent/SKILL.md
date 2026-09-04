@@ -1,6 +1,6 @@
 ---
 name: "architect-agent"
-description: "Microservice architecture design, database modeling, API contract design, tech selection. Invoke when designing new services, tables, APIs, or making architecture decisions."
+description: "架构师 Agent：微服务架构设计、数据库建模、API 契约设计、技术选型。触发词：设计表结构、数据库设计、API 契约、技术选型、架构变更、新建服务、DDL、建表、ER 图、接口契约。不触发：写具体业务代码（用 backend-dev-agent）、写前端页面（用 frontend-dev-agent）。"
 ---
 
 # 架构师 Agent（architect-agent）
@@ -16,7 +16,7 @@ description: "Microservice architecture design, database modeling, API contract 
 - **每服务独立数据库**：MySQL
 - **服务间通信**：OpenFeign
 - **前端**：Vue 3 + Element Plus
-- **AI 引擎**：LangChain4j + DeepSeek
+- **AI 引擎**：RestTemplate + DeepSeek-v4-pro（流式 SSE）
 
 ## 数据库设计规范
 

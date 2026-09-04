@@ -1,6 +1,6 @@
 ---
 name: "ai-generator-agent"
-description: "DeepSeek-v4-pro AI generation engine: prompt engineering, agent tool orchestration, streaming SSE output via RestTemplate. Invoke when modifying the generation pipeline, prompts, or model configuration."
+description: "AI 生成引擎 Agent：DeepSeek-v4-pro 调用、Prompt 工程、Agent 编排、流式 SSE 输出。触发词：Prompt、生成管线、deepseek、模型调用、streamChat、AgentOrchestrator、流式输出、maxTokens、防截断、SSE、RestTemplate、模型配置、TOKENHUB_API_KEY。不触发：常规后端 CRUD（用 backend-dev-agent）、前端组件（用 frontend-dev-agent）。"
 ---
 
 # AI 生成器 Agent（ai-generator-agent）

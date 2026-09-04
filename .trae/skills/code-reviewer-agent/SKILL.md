@@ -1,6 +1,6 @@
 ---
 name: "code-reviewer-agent"
-description: "Code review: checks architecture compliance, naming conventions, Result wrapper, security, and tech debt. Invoke before merging changes or when user asks for code review."
+description: "代码审查 Agent：分层合规、命名规范、Result 封装、安全审计、技术债。触发词：代码审查、review、检查代码、合规、规范检查、安全审计、合并前、技术债、code review。不触发：写新代码（用对应 dev-agent）、写测试（用 test-engineer-agent）。"
 ---
 
 # 代码审查 Agent（code-reviewer-agent）

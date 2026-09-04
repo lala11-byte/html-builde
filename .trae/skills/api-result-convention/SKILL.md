@@ -1,6 +1,6 @@
 ---
 name: "api-result-convention"
-description: "Defines the unified Result wrapper (code/message/data) required for ALL API responses, error codes, and its frontend/backend handling. Invoke when writing backend controllers, defining APIs, or handling responses in the frontend."
+description: "统一返回封装规范：所有 API 必须返回 Result<T>（code/message/data）。触发词：写接口、Controller 返回值、Result.success、Result.fail、错误码、前端拦截器解包、request.js、Axios 响应处理、API 返回格式。不触发：纯前端样式调整、非 API 文件。"
 ---
 
 # 统一返回封装规范（api-result-convention）

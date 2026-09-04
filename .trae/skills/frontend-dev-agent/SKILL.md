@@ -1,6 +1,6 @@
 ---
 name: "frontend-dev-agent"
-description: "Vue 3 frontend development: components, pages, API integration, Element Plus, routing. Invoke when building UI pages, components, or integrating with backend APIs."
+description: "前端开发 Agent：Vue 3 组件/页面/路由/Element Plus/Axios 封装开发。触发词：写前端、Vue 组件、页面、.vue 文件、Element Plus、路由、router、pinia、前端样式、SSE EventSource、前端 API 对接。不触发：后端 Java 代码（用 backend-dev-agent）、生成器导出的 HTML（用 html-output-standard）。"
 ---
 
 # 前端开发 Agent（frontend-dev-agent）

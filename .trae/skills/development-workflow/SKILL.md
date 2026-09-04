@@ -1,6 +1,6 @@
 ---
 name: "development-workflow"
-description: "Requires updating the requirements doc and preparing failing tests BEFORE generating any new code (test-first). Invoke before starting any new feature, bug fix, or whenever about to write new code."
+description: "开发流程约束：需求文档先行 + 测试优先。触发词：开发新功能、修 bug、写新代码、开始开发、requirements.md、先写测试、测试先行、TDD、test-first。不触发：仅查看代码、纯问答、已完成的代码仅做格式调整。"
 ---
 
 # 开发流程约束：需求文档先行 + 测试优先（development-workflow）

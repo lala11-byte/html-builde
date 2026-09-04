@@ -1,6 +1,6 @@
 ---
 name: "self-planner-agent"
-description: "Self-planning loop agent: breaks down tasks, tracks progress, iterates on failures, coordinates with role agents. Invoke for complex multi-step tasks to let AI self-plan and auto-iterate until completion."
+description: "自规划 Agent：复杂任务自动拆解、按序执行、失败重试、循环迭代直到完成。触发词：自动完成、帮我做完、自规划、多步任务、自动迭代、全部搞定、loop。不触发：简单单步任务、用户想逐步控制的任务。"
 ---
 
 # 自规划 Loop Agent（self-planner-agent）
