@@ -330,7 +330,7 @@ CREATE TABLE component_def (
 - [x] M5-1: 后端全量编译 `mvn clean compile` 成功（4 服务 + common + api-contract）
 - [x] M5-2: 后端全量测试 `mvn test` 全部通过（无 failures、无 errors）
 - [x] M5-3: 前端构建 `npm run build` 成功（无编译错误）
-- [ ] M5-4: 前端测试 `npm run test` 通过（如有）
+- [x] M5-4: 前端测试 `npm run test` 通过（Vitest 6 个路由守卫测试）
 
 **端到端流程：**
 - [ ] M5-5: 用户注册 → 登录 → 创建项目 → 进入编辑器 → AI 生成 → 下载 ZIP（全链路通畅）
@@ -339,8 +339,8 @@ CREATE TABLE component_def (
 - [ ] M5-8: 数据库表自动初始化（`spring.sql.init.mode: always`）建表成功
 
 **响应式与兼容：**
-- [ ] M5-9: 前端在 1920px / 1366px 宽度下布局正常
-- [ ] M5-10: 窗口缩窄至 1024px 时三栏布局不塌陷
+- [x] M5-9: 前端在 1920px / 1366px 宽度下布局正常
+- [x] M5-10: 窗口缩窄至 1024px 时三栏布局不塌陷
 
 **文档与规范：**
 - [ ] M5-11: requirements.md 验收标准全部勾选
