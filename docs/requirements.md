@@ -333,17 +333,17 @@ CREATE TABLE component_def (
 - [x] M5-4: 前端测试 `npm run test` 通过（Vitest 6 个路由守卫测试）
 
 **端到端流程：**
-- [ ] M5-5: 用户注册 → 登录 → 创建项目 → 进入编辑器 → AI 生成 → 下载 ZIP（全链路通畅）
-- [ ] M5-6: 未登录访问受保护接口返回 401 Result
-- [ ] M5-7: 网关路由转发到各下游服务正常
-- [ ] M5-8: 数据库表自动初始化（`spring.sql.init.mode: always`）建表成功
+- [x] M5-5: 用户注册 → 登录 → 创建项目 → 进入编辑器 → AI 生成 → 下载 ZIP（全链路通畅）
+- [x] M5-6: 未登录访问受保护接口返回 401 Result
+- [x] M5-7: 网关路由转发到各下游服务正常
+- [x] M5-8: 数据库表自动初始化（`spring.sql.init.mode: always`）建表成功
 
 **响应式与兼容：**
 - [x] M5-9: 前端在 1920px / 1366px 宽度下布局正常
 - [x] M5-10: 窗口缩窄至 1024px 时三栏布局不塌陷
 
 **文档与规范：**
-- [ ] M5-11: requirements.md 验收标准全部勾选
+- [x] M5-11: requirements.md 验收标准全部勾选
 - [x] M5-12: 各服务 init.sql 与实际代码实体一致
 - [x] M5-13: Skill 文档中无过时引用（LangChain4j/CountDownLatch 等）
 
@@ -356,3 +356,4 @@ CREATE TABLE component_def (
 | 2026-09-04 | M4 增强：流式传输（streaming）防止输出截断、maxTokens=16384、严格 Prompt 约束、4 层验收标准拆分 |
 | 2026-09-04 | M4 完工：LangChain4j → RestTemplate、DeepSeek-v4-flash → deepseek-v4-pro、CountDownLatch → BufferedReader SSE 解析；M4 全部验收标准标记完成 |
 | 2026-09-04 | M5 新增：联调验收需求（编译测试、端到端流程、响应式、文档规范） |
+| 2026-09-04 | M5 全部验收通过：编译/测试/前端构建/Vitest/端到端全链路/401 鉴权/路由转发/自动建表/响应式布局/文档同步 |
