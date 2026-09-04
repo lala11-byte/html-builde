@@ -13,6 +13,10 @@ spring:
     username: root
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/init.sql
 
 # DeepSeek API 配置
 deepseek:
