@@ -218,6 +218,26 @@ CREATE TABLE component_def (
 - 涉及服务：全部 4 服务 + common 模块 + api-contract 模块
 
 2. **M2 用户域**：user-service 注册登录 + JWT + 网关鉴权
+
+### M2 详细需求（用户认证与鉴权）
+
+- 背景/目标：用户可注册账号并登录获取 JWT；gateway 统一校验 JWT 后把 userId 注入下游请求头；支持 token 刷新
+- 输入：用户名（3-20 字符）、密码（8-32 位，必须含字母和数字）
+- 输出：JWT（accessToken 有效期 2h + refreshToken 有效期 7d）
+
+验收标准（逐条对应测试用例）：
+- [ ] M2-1: 注册成功返回 `Result<UserVO>`，含 id、username；用户名重复返回 code=1001
+- [ ] M2-2: 登录成功返回 `Result<TokenVO>`，含 accessToken、refreshToken；密码错误返回 code=1002
+- [ ] M2-3: 密码 BCrypt 加密存储，数据库中不存明文
+- [ ] M2-4: 刷新 token：用有效 refreshToken 换取新 accessToken + refreshToken
+- [ ] M2-5: gateway 对 `/api/v1/auth/**`（注册/登录/刷新）放行，不校验 token
+- [ ] M2-6: gateway 对其他路径无 token 或 token 过期/无效返回 `Result(401, "未登录")`，HTTP 200
+- [ ] M2-7: gateway 鉴权后把 userId、username 注入 `X-User-Id`、`X-User-Name` 请求头转发给下游
+- [ ] M2-8: 参数校验：用户名/密码不合规返回 code=400 + 可读 message
+- 涉及接口：`POST /api/v1/auth/register`、`POST /api/v1/auth/login`、`POST /api/v1/auth/refresh`
+- 涉及表：`user`（id, username, password_hash, created_at, updated_at）
+- 涉及服务：user-service、gateway-service、common
+
 3. **M3 项目域**：project-service 项目/页面 CRUD + 前端工作台
 4. **M4 生成器域**：generator-service 组件定义 + 生成/导出 + 前端编辑器三栏
 5. **M5 联调验收**：端到端流程 + 响应式 + 全量测试通过
