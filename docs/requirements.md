@@ -213,8 +213,8 @@ CREATE TABLE component_def (
 - [ ] M1-3: 参数校验失败（`@Valid` + DTO 注解）返回 code=400 + 可读 message，HTTP 200
 - [ ] M1-4: 4 个服务各自启动成功并注册到 Nacos（服务名见 project-conventions）
 - [ ] M1-5: gateway 路由 `/api/v1/auth/**` → user-service、`/api/v1/projects/**` → project-service、`/api/v1/generator/**` → generator-service 转发正常
-- [ ] M1-6: 下游服务不可用时 gateway 返回 code=5003 `Result` 降级响应，不暴露堆栈
-- [ ] M1-7: 每个服务的健康检查接口 `GET /actuator/health` 返回 HTTP 200
+- [x] M1-6: 下游服务不可用时 gateway 返回 code=5003 `Result` 降级响应，不暴露堆栈
+- [x] M1-7: 每个服务的健康检查接口 `GET /actuator/health` 返回 HTTP 200
 - 涉及服务：全部 4 服务 + common 模块 + api-contract 模块
 
 2. **M2 用户域**：user-service 注册登录 + JWT + 网关鉴权

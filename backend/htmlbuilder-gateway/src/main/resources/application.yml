@@ -22,3 +22,9 @@ spring:
           uri: lb://htmlbuilder-generator-service
           predicates:
             - Path=/api/v1/generator/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

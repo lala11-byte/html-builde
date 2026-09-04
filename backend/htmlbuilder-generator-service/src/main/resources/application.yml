@@ -23,3 +23,9 @@ deepseek:
   api-key: ${TOKENHUB_API_KEY:}
   base-url: http://192.200.1.213:18086/v1/messages
   model: deepseek-v4-pro
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

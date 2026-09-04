@@ -28,7 +28,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/register",
             "/api/v1/auth/refresh",
             "/api/v1/generator/progress/",
-            "/api/v1/generator/download/"
+            "/api/v1/generator/download/",
+            "/actuator/health"
     );
 
     @Value("${jwt.secret:htmlbuilder-default-secret-key-for-jwt-hs256}")
