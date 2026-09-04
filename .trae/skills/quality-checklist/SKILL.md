@@ -1,0 +1,63 @@
+---
+name: "quality-checklist"
+description: "Pre-completion quality checklist: backend/frontend tests passing, Result wrapper compliance, core generator flow, export validity, responsive. Invoke when a feature is finished, before telling the user it is done, or before committing."
+---
+
+# 质量自检清单（quality-checklist）
+
+任何功能/修复**宣告完成之前**必须逐项自检。发现问题先修复再交付，禁止带病交付。
+
+## 触发时机
+
+- 功能开发/修复完成时
+- 修改核心逻辑（editor / components / exporter / 任意后端接口）时
+- 用户要求验证或提交代码之前
+
+## 测试检查（最高优先级）
+
+- [ ] 后端测试全部通过：`mvn test`（各服务在自身模块下运行）
+- [ ] 前端测试全部通过：`npm run test`
+- [ ] 修 bug 的场景有对应回归测试且通过
+- [ ] 未为通过测试而删除/弱化断言
+- [ ] 微服务联调：通过 gateway 端到端调用各服务的核心接口正常
+- [ ] 下游服务停掉时，网关/OpenFeign 有降级 `Result` 返回而非 500 堆栈
+
+## 接口与封装检查
+
+- [ ] 新增接口全部返回 `Result<T>`，错误码已登记 `ResultCode` 枚举（见 api-result-convention）
+- [ ] gateway 转发后响应仍是 `Result` 结构；鉴权失败返回 401 `Result`（HTTP 仍 200）
+- [ ] 前端请求走统一 Axios 实例，拦截器正确解包，组件内无重复 code 判断
+- [ ] 参数校验生效，非法输入返回 400 + 可读 message
+- [ ] 数据库结构变更已同步对应服务 `*/resources/db/` SQL 脚本
+
+## 生成器核心流程检查（逐项实际操作验证）
+
+- [ ] 左侧组件可添加到画布（拖拽或点击均正常）
+- [ ] 画布中已添加组件可选中，右侧属性面板可编辑其属性
+- [ ] 属性修改实时反映到画布预览
+- [ ] 导出的 HTML 能**下载后直接双击在浏览器打开**且渲染正确
+- [ ] 复制到剪贴板的代码与导出内容一致
+- [ ] （若已实现）项目保存/加载经数据库读写正常
+
+## 代码质量检查
+
+- [ ] 浏览器控制台无任何报错/警告
+- [ ] 导出内容符合 html-output-standard：无占位文本、无 `undefined`、标签闭合
+- [ ] 无残留调试代码；无硬编码颜色/间距（走 token）
+- [ ] docs/requirements.md 对应条目已更新且验收标准达成
+
+## 兼容与适配检查
+
+- [ ] 桌面端 1920/1366 宽度下布局正常
+- [ ] 窗口缩窄至 1024px 时三栏布局不塌陷、不横向溢出（或按设计正确折叠）
+- [ ] Chrome 与 Edge 下核心流程均可用
+
+## 资源检查
+
+- [ ] 所有图片/字体 URL 有效可访问，无 404
+- [ ] 无对不存在文件的引用
+
+## 验证方式约定
+
+- 用浏览器实际操作 + 运行测试验证，不以"代码看起来没问题"作为通过依据
+- 修复后必须**重新执行**失败项，确认真正通过

@@ -1,0 +1,11 @@
+node_modules/
+.idea/
+*.iml
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+.DS_Store
+Thumbs.db
+dist/

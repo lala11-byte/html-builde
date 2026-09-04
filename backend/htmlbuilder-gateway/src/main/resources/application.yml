@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: htmlbuilder-gateway-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://htmlbuilder-user-service
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: project-service
+          uri: lb://htmlbuilder-project-service
+          predicates:
+            - Path=/api/v1/projects/**
+        - id: generator-service
+          uri: lb://htmlbuilder-generator-service
+          predicates:
+            - Path=/api/v1/generator/**,/api/v1/components/**

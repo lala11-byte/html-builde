@@ -1,0 +1,60 @@
+---
+name: "development-workflow"
+description: "Requires updating the requirements doc and preparing failing tests BEFORE generating any new code (test-first). Invoke before starting any new feature, bug fix, or whenever about to write new code."
+---
+
+# 开发流程约束：需求文档先行 + 测试优先（development-workflow）
+
+**任何新代码生成之前必须先完成两件事：更新需求文档、准备测试。测试全部通过后才算开发完成。**
+
+## 触发时机（强制）
+
+- 开始任何新功能之前
+- 修复任何 bug 之前
+- 即将生成/编写新的业务代码之前
+
+## 流程（严格按序执行）
+
+### 1. 需求文档先行
+
+在 `docs/requirements.md` 中为该功能写入/更新条目：
+
+```markdown
+### [模块] 功能名
+- 背景/目标：
+- 输入/输出：
+- 验收标准：（可逐条验证的列表）
+- 涉及接口/表：（如涉及后端）
+```
+
+需求确认后再进入下一步；需求变更时必须先回改文档再改代码。
+
+### 2. 测试先行——在测试中发现需求（生成代码前）
+
+测试不是写完代码后的补丁，而是**澄清和发现需求的过程**：在写测试时会暴露需求文档中遗漏的边界、模糊的输入输出、未定义的错误路径，这些发现必须**反向回写到 `docs/requirements.md`** 后再继续。
+
+- 后端：先写 JUnit 5 测试（Service 单测 + MockMvc 接口测试），断言输入输出与 Result 封装格式
+- 前端：对工具函数/组件逻辑写 Vitest 用例（优先测纯逻辑）
+- 修 bug：先写**能复现该 bug 的失败测试**，再修复
+- 此时测试是失败的（代码尚未实现）——这是正常的，不是阻塞项
+- 写测试中若发现需求不清晰或有遗漏：先补全 requirements.md，再补全测试，然后才进入实现
+
+### 3. 开发实现
+
+编写最小实现使测试通过；不做需求文档之外的事。
+
+### 4. 开发完成后再测试（验收回归）
+
+代码写完不代表结束，必须再跑一轮完整测试做验收：
+
+- [ ] 后端 `mvn test` 全部通过；前端 `npm run test` 全部通过
+- [ ] **开发完成后新增的集成/端到端测试**通过（覆盖核心链路，不只是单测）
+- [ ] 未破坏已有测试（回归）
+- [ ] quality-checklist 自检通过
+- [ ] docs/requirements.md 验收标准逐条达成
+
+## 禁止事项
+
+- 禁止跳过需求文档直接写代码
+- 禁止"先写实现后补测试"冒充已遵循本流程
+- 禁止为让测试通过而修改断言去迎合错误行为；测试断言只能随需求文档变更而改
