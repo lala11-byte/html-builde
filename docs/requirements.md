@@ -239,6 +239,30 @@ CREATE TABLE component_def (
 - 涉及服务：user-service、gateway-service、common
 
 3. **M3 项目域**：project-service 项目/页面 CRUD + 前端工作台
+
+### M3 详细需求（项目与页面管理）
+
+- 背景/目标：用户可创建项目，在项目下管理多个页面；前端工作台展示项目列表，支持进入编辑器
+- 输入：项目名（1-50 字符）、页面标题（1-100 字符）
+- 输出：项目/页面元数据
+
+验收标准（逐条对应测试用例）：
+- [ ] M3-1: 创建项目成功返回 `Result<ProjectVO>`；项目名重复不限制（同一用户不同项目可同名）
+- [ ] M3-2: 分页查询项目列表（`GET /api/v1/projects?page=1&size=10`），默认按创建时间倒序，返回 `Result<PageVO<ProjectVO>>`
+- [ ] M3-3: 重命名项目成功返回 `Result<ProjectVO>`；项目不存在返回 code=2001
+- [ ] M3-4: 删除项目成功返回 `Result<null>`；删除项目时级联删除其下所有页面；项目不存在返回 code=2001
+- [ ] M3-5: 在项目下创建页面成功返回 `Result<PageVO>`；项目不存在返回 code=2001
+- [ ] M3-6: 分页查询项目下页面列表（`GET /api/v1/projects/{pid}/pages?page=1&size=20`），默认按 sort_order 升序，返回 `Result<PageVO<PageVO>>`
+- [ ] M3-7: 重命名页面成功返回 `Result<PageVO>`；页面不存在返回 code=2002
+- [ ] M3-8: 删除页面成功返回 `Result<null>`；页面不存在返回 code=2002
+- [ ] M3-9: 仅项目所有者可操作项目及其页面；通过 `X-User-Id` 请求头校验；非所有者返回 code=403
+- [ ] M3-10: 参数校验：项目名/页面标题为空或超长返回 code=400 + 可读 message
+- [ ] M3-11: 前端工作台：项目列表展示（名称、页面数、更新时间），支持创建/重命名/删除项目，点击进入编辑器
+- [ ] M3-12: 前端编辑器骨架：顶栏（项目名 + 页面切换 + 导出按钮）+ 三栏布局占位
+- 涉及接口：`POST /api/v1/projects`、`GET /api/v1/projects`、`PUT /api/v1/projects/{id}`、`DELETE /api/v1/projects/{id}`、`POST /api/v1/projects/{pid}/pages`、`GET /api/v1/projects/{pid}/pages`、`PUT /api/v1/projects/{pid}/pages/{pageId}`、`DELETE /api/v1/projects/{pid}/pages/{pageId}`
+- 涉及表：`project`（id, user_id, name, created_at, updated_at）、`page`（id, project_id, title, sort_order, component_tree, created_at, updated_at）
+- 涉及服务：project-service、gateway-service
+- 前端页面：`/workspace`（项目列表）、`/editor/:projectId/:pageId`（编辑器骨架）
 4. **M4 生成器域**：generator-service 组件定义 + 生成/导出 + 前端编辑器三栏
 5. **M5 联调验收**：端到端流程 + 响应式 + 全量测试通过
 
