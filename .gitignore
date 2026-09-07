@@ -10,3 +10,4 @@ target/
 Thumbs.db
 dist/derby.log
 logs/
+derby.log
