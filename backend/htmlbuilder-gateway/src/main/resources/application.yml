@@ -9,6 +9,17 @@ spring:
       discovery:
         server-addr: 127.0.0.1:8848
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - 'http://localhost:5173'
+              - 'http://localhost:5174'
+              - 'http://localhost:3000'
+            allowed-methods: '*'
+            allowed-headers: '*'
+            allow-credentials: true
+            max-age: 3600
       routes:
         - id: user-service
           uri: lb://htmlbuilder-user-service
