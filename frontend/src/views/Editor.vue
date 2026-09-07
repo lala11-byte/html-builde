@@ -99,6 +99,11 @@ const downloadUrl = ref('')
 const previewUrl = ref('')
 let eventSource = null
 
+// 网关地址：后端返回的是相对路径，iframe/window.open 需要绝对地址，
+// 否则会解析到前端源（localhost:5173），加载成 HTML Builder 自己的页面
+const GATEWAY_BASE = 'http://localhost:8080'
+const toAbsolute = (url) => (url && !url.startsWith('http') ? GATEWAY_BASE + url : url)
+
 const promptTemplates = {
   resume: `生成一个个人简历网站，具体需求如下：
 
@@ -172,8 +177,8 @@ const handleGenerate = async () => {
 
     eventSource.addEventListener('complete', (event) => {
       const data = JSON.parse(event.data)
-      downloadUrl.value = data.downloadUrl
-      previewUrl.value = data.previewUrl
+      downloadUrl.value = toAbsolute(data.downloadUrl)
+      previewUrl.value = toAbsolute(data.previewUrl)
       generating.value = false
       progressLogs.value.push('[完成] 网站生成完成！')
       eventSource.close()
@@ -216,8 +221,8 @@ onMounted(async () => {
   try {
     const latest = await getLatestByPage(route.params.pageId)
     if (latest && latest.previewUrl) {
-      previewUrl.value = latest.previewUrl
-      downloadUrl.value = latest.downloadUrl
+      previewUrl.value = toAbsolute(latest.previewUrl)
+      downloadUrl.value = toAbsolute(latest.downloadUrl)
     }
   } catch {
     // 页面暂无生成结果，忽略
