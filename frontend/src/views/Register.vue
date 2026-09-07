@@ -23,6 +23,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { register } from '../api'
 
 const router = useRouter()
@@ -40,7 +41,8 @@ const rules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 8, max: 32, message: '密码长度8-32字符', trigger: 'blur' }
+    { min: 8, max: 32, message: '密码长度8-32字符', trigger: 'blur' },
+    { pattern: /^(?=.*[a-zA-Z])(?=.*\d).+$/, message: '密码必须包含字母和数字', trigger: 'blur' }
   ]
 }
 
