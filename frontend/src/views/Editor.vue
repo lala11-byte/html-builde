@@ -18,6 +18,16 @@
           </el-tab-pane>
           <el-tab-pane label="AI 生成">
             <div class="ai-panel">
+              <el-select
+                v-model="selectedTemplate"
+                placeholder="选择提示词模板"
+                style="width: 100%; margin-bottom: 8px;"
+                @change="applyTemplate"
+              >
+                <el-option label="个人简历网站" value="resume" />
+                <el-option label="博客网站" value="blog" />
+                <el-option label="企业官网" value="company" />
+              </el-select>
               <el-input
                 v-model="aiPrompt"
                 type="textarea"
@@ -73,10 +83,47 @@ const pages = ref([])
 
 // AI 生成
 const aiPrompt = ref('')
+const selectedTemplate = ref('')
 const generating = ref(false)
 const progressLogs = ref([])
 const downloadUrl = ref('')
 let eventSource = null
+
+const promptTemplates = {
+  resume: `生成一个个人简历网站，具体需求如下：
+
+【页面规划】
+1. 首页（index.html）：个人简介、技能标签、项目经历卡片展示、联系方式
+2. 项目详情页（project.html）：项目名称、技术栈、项目描述、项目截图占位、项目链接
+3. 联系页面（contact.html）：联系表单（姓名、邮箱、消息）、社交媒体链接
+
+【设计风格】
+- 现代简约风格，深色主题（#1a1a2e 主色调，#e94560 强调色）
+- 顶部导航栏（首页、项目、联系），固定定位
+- 首页 Hero 区域：头像占位 + 姓名 + 一句话简介 + 打字机效果
+- 技能区：Flexbox 标签布局，hover 放大动画
+- 项目卡片：Grid 布局，hover 阴影上浮
+- 响应式：移动端导航栏收起为汉堡菜单
+
+【数据库设计】
+- projects 表：id, title, tech_stack, description, link, sort_order
+- messages 表：id, name, email, message, created_at
+
+【功能】
+- 首页加载时通过 Fetch API 获取项目列表展示
+- 联系页表单提交到后端 API 保存到 messages 表
+- 底部版权信息栏`,
+
+  blog: `生成一个博客网站，包含文章列表页、文章详情页和关于页面。文章列表页展示文章卡片（标题、摘要、日期、标签），点击进入详情页阅读全文。关于页面展示博主介绍。数据库需包含 articles 表（id, title, summary, content, tags, created_at）和 tags 表（id, name）。后端提供文章 CRUD API。设计风格：清新简洁，白色背景，阅读友好。`,
+
+  company: `生成一个企业官网，包含首页（公司介绍、核心业务、团队展示、客户案例）、产品列表页、产品详情页。数据库需包含 products 表（id, name, description, features, image_url, category）和 cases 表（id, client_name, project_desc, result, date）。后端提供产品和案例的 CRUD API。设计风格：商务专业，蓝色主色调，大图轮播。`
+}
+
+const applyTemplate = (key) => {
+  if (key && promptTemplates[key]) {
+    aiPrompt.value = promptTemplates[key]
+  }
+}
 
 const goBack = () => router.push('/workspace')
 
