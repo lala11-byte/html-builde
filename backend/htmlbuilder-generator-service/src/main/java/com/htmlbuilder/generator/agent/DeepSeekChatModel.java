@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * DeepSeek-v4-pro 自定义模型供应商
@@ -106,6 +107,13 @@ public class DeepSeekChatModel {
      *   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
      */
     public String streamChat(String userMessage) {
+        return streamChat(userMessage, null);
+    }
+
+    /**
+     * 流式调用（带进度回调，每收到一个 chunk 通知一次）
+     */
+    public String streamChat(String userMessage, Consumer<String> chunkCallback) {
         Map<String, Object> requestBody = buildRequestBody(userMessage, 16384, true);
 
         try {
@@ -120,6 +128,7 @@ public class DeepSeekChatModel {
                     },
                     response -> {
                         StringBuilder result = new StringBuilder();
+                        int chunkCount = 0;
                         try (BufferedReader reader = new BufferedReader(
                                 new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
                             String line;
@@ -136,6 +145,11 @@ public class DeepSeekChatModel {
                                         String text = extractDeltaText(map);
                                         if (text != null) {
                                             result.append(text);
+                                            chunkCount++;
+                                            // 每 20 个 chunk 通知一次进度，避免过度频繁
+                                            if (chunkCallback != null && chunkCount % 20 == 0) {
+                                                chunkCallback.accept("已生成 " + result.length() + " 字符...");
+                                            }
                                         }
                                     } catch (Exception e) {
                                         log.warn("解析 SSE 数据失败: {}", data);
@@ -143,7 +157,10 @@ public class DeepSeekChatModel {
                                 }
                             }
                         }
-                        log.info("流式调用完成，输出长度: {} 字符", result.length());
+                        log.info("流式调用完成，输出长度: {} 字符，chunk 数: {}", result.length(), chunkCount);
+                        if (chunkCallback != null) {
+                            chunkCallback.accept("流式生成完成，共 " + result.length() + " 字符");
+                        }
                         return result.toString();
                     }
             );

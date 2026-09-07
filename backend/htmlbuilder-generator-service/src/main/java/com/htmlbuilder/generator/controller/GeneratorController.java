@@ -125,6 +125,65 @@ public class GeneratorController {
     }
 
     /**
+     * 预览生成的网站（静态文件服务）
+     * 访问路径: /api/v1/generator/preview/{taskId}/index.html
+     */
+    @GetMapping("/preview/{taskId}/**")
+    public void preview(@PathVariable Long taskId, jakarta.servlet.http.HttpServletRequest request,
+                        HttpServletResponse response) {
+        Path outputPath = generatorService.getOutputPath(taskId);
+        if (outputPath == null || !Files.exists(outputPath)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        // 从请求路径中提取文件路径
+        String fullPath = request.getRequestURI();
+        String prefix = "/api/v1/generator/preview/" + taskId + "/";
+        String relativePath = fullPath.substring(fullPath.indexOf(prefix) + prefix.length());
+        if (relativePath.isEmpty()) {
+            relativePath = "index.html";
+        }
+
+        // 安全检查：防止路径穿越
+        if (relativePath.contains("..")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        Path filePath = outputPath.resolve("public").resolve(relativePath);
+        if (!Files.exists(filePath)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        try {
+            // 根据扩展名设置 Content-Type
+            String fileName = filePath.getFileName().toString();
+            if (fileName.endsWith(".html")) {
+                response.setContentType("text/html; charset=UTF-8");
+            } else if (fileName.endsWith(".css")) {
+                response.setContentType("text/css; charset=UTF-8");
+            } else if (fileName.endsWith(".js")) {
+                response.setContentType("application/javascript; charset=UTF-8");
+            } else if (fileName.endsWith(".png")) {
+                response.setContentType("image/png");
+            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                response.setContentType("image/jpeg");
+            } else if (fileName.endsWith(".svg")) {
+                response.setContentType("image/svg+xml");
+            } else {
+                response.setContentType("application/octet-stream");
+            }
+
+            Files.copy(filePath, response.getOutputStream());
+        } catch (IOException e) {
+            log.error("Failed to serve preview file: {}", filePath, e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * 获取任务状态
      */
     @GetMapping("/tasks/{taskId}")

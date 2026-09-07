@@ -62,19 +62,19 @@ public class AgentOrchestrator {
 
             // Step 3: 生成前端页面（流式，防止 HTML/CSS/JS 截断）
             progressCallback.accept("[前端] AI 正在生成前端页面代码（流式传输，防止截断）...");
-            String frontendCode = generateFrontend(prompt, plan);
+            String frontendCode = generateFrontend(prompt, plan, progressCallback);
             writeFrontendFiles(projectDir, frontendCode);
             progressCallback.accept("[前端] 前端页面生成完成");
 
             // Step 4: 生成数据库（流式，防止 SQL 截断）
             progressCallback.accept("[数据库] AI 正在设计数据库结构（流式传输）...");
-            String dbSchema = generateDatabase(prompt, plan);
+            String dbSchema = generateDatabase(prompt, plan, progressCallback);
             writeDatabaseFiles(projectDir, dbSchema);
             progressCallback.accept("[数据库] 数据库设计完成");
 
             // Step 5: 生成后端 API（流式，防止长代码截断）
             progressCallback.accept("[后端] AI 正在生成后端 API 代码（流式传输）...");
-            String backendCode = generateBackend(prompt, plan, dbSchema);
+            String backendCode = generateBackend(prompt, plan, dbSchema, progressCallback);
             writeBackendFiles(projectDir, backendCode);
             progressCallback.accept("[后端] 后端 API 生成完成");
 
@@ -126,7 +126,7 @@ public class AgentOrchestrator {
     /**
      * 生成前端代码（流式，maxTokens=16384，防止 HTML/CSS/JS 截断）
      */
-    private String generateFrontend(String prompt, String plan) {
+    private String generateFrontend(String prompt, String plan, Consumer<String> progressCallback) {
         String systemPrompt = """
 【角色】你是一个资深前端开发工程师。
 【任务】根据用户需求和网站规划，生成完整的网站前端代码。
@@ -162,13 +162,13 @@ public class AgentOrchestrator {
 8. 只输出代码，不要输出任何解释、说明或额外文字
 """;
 
-        return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan);
+        return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan, progressCallback);
     }
 
     /**
      * 生成数据库（流式，防止 SQL 截断）
      */
-    private String generateDatabase(String prompt, String plan) {
+    private String generateDatabase(String prompt, String plan, Consumer<String> progressCallback) {
         String systemPrompt = """
 【角色】你是一个数据库设计师。
 【任务】根据用户需求和网站规划，设计 SQLite 数据库。
@@ -198,13 +198,13 @@ INSERT INTO table_name (col1, col2) VALUES ('val5', 'val6');
 6. 只输出 SQL 代码，不要输出任何解释或额外文字
 """;
 
-        return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan);
+        return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan, progressCallback);
     }
 
     /**
      * 生成后端代码（流式，防止长代码截断）
      */
-    private String generateBackend(String prompt, String plan, String dbSchema) {
+    private String generateBackend(String prompt, String plan, String dbSchema, Consumer<String> progressCallback) {
         String systemPrompt = """
 【角色】你是一个 Node.js 后端开发工程师。
 【任务】根据用户需求、网站规划和数据库结构，生成完整的 Express 后端代码。
@@ -259,7 +259,7 @@ app.listen(PORT, () => {
                 "数据库结构：\n```sql\n" + dbSchema + "\n```\n\n" +
                 "请输出完整的 server.js 代码：";
 
-        return chatModel.streamChat(fullPrompt);
+        return chatModel.streamChat(fullPrompt, progressCallback);
     }
 
     private void createProjectStructure(String projectDir) throws IOException {

@@ -62,7 +62,19 @@
           </el-tab-pane>
         </el-tabs>
       </div>
-      <div class="canvas">画布（待开发）</div>
+      <div class="canvas">
+        <div v-if="previewUrl" class="preview-container">
+          <div class="preview-toolbar">
+            <span>预览模式</span>
+            <el-button size="small" @click="refreshPreview">刷新</el-button>
+            <el-button size="small" @click="openInNewTab">新窗口打开</el-button>
+          </div>
+          <iframe :src="previewUrl" class="preview-iframe" frameborder="0"></iframe>
+        </div>
+        <div v-else class="placeholder-text">
+          生成网站后，预览将显示在这里
+        </div>
+      </div>
       <div class="panel right-panel">属性面板（待开发）</div>
     </div>
   </div>
@@ -87,6 +99,8 @@ const selectedTemplate = ref('')
 const generating = ref(false)
 const progressLogs = ref([])
 const downloadUrl = ref('')
+const previewUrl = ref('')
+const currentTaskId = ref('')
 let eventSource = null
 
 const promptTemplates = {
@@ -145,6 +159,7 @@ const handleGenerate = async () => {
   generating.value = true
   progressLogs.value = []
   downloadUrl.value = ''
+  previewUrl.value = ''
 
   try {
     const result = await submitGenerate(aiPrompt.value)
@@ -162,6 +177,8 @@ const handleGenerate = async () => {
     eventSource.addEventListener('complete', (event) => {
       const data = JSON.parse(event.data)
       downloadUrl.value = data.downloadUrl
+      currentTaskId.value = taskId
+      previewUrl.value = `http://localhost:8080/api/v1/generator/preview/${taskId}/index.html`
       generating.value = false
       progressLogs.value.push('[完成] 网站生成完成！')
       eventSource.close()
@@ -189,6 +206,20 @@ const handleGenerate = async () => {
 const handleDownload = () => {
   if (downloadUrl.value) {
     window.open(downloadUrl.value, '_blank')
+  }
+}
+
+const refreshPreview = () => {
+  if (previewUrl.value) {
+    const url = previewUrl.value
+    previewUrl.value = ''
+    setTimeout(() => { previewUrl.value = url }, 0)
+  }
+}
+
+const openInNewTab = () => {
+  if (previewUrl.value) {
+    window.open(previewUrl.value, '_blank')
   }
 }
 
@@ -245,9 +276,11 @@ onUnmounted(() => {
 }
 .canvas {
   flex: 1;
-  padding: 24px;
+  padding: 0;
   background: #f0f2f5;
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .placeholder-text {
   color: #999;
@@ -280,5 +313,29 @@ onUnmounted(() => {
 }
 .log-complete {
   color: #67c23a;
+}
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #dcdfe6;
+  font-size: 14px;
+  color: #606266;
+}
+.preview-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
 }
 </style>
