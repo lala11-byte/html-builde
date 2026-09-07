@@ -20,10 +20,11 @@ import java.util.Map;
 
 /**
  * DeepSeek-v4-pro 自定义模型供应商
- * 通过 HTTP 直接调用网关 API，支持非流式（短输出）和流式（长输出）两种模式
+ * 通过 HTTP 直接调用 Anthropic Messages API 格式的网关
  * <p>
  * API 网关：http://192.200.1.213:18086/v1/messages
  * 认证方式：Bearer Token（环境变量 TOKENHUB_API_KEY）
+ * 响应格式：Anthropic Messages API（content[0].text，非 OpenAI choices）
  */
 public class DeepSeekChatModel {
 
@@ -57,6 +58,7 @@ public class DeepSeekChatModel {
 
     /**
      * 非流式调用（用于短输出，如规划 JSON）
+     * Anthropic 响应格式：{ content: [{ type: "text", text: "..." }] }
      */
     public String chat(String userMessage) {
         Map<String, Object> requestBody = buildRequestBody(userMessage, 4096, false);
@@ -64,6 +66,8 @@ public class DeepSeekChatModel {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
+        // Anthropic API 需要版本头
+        headers.set("anthropic-version", "2023-06-01");
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
@@ -75,6 +79,8 @@ public class DeepSeekChatModel {
                 throw new RuntimeException("AI 返回空响应");
             }
 
+            log.debug("非流式响应键: {}", body.keySet());
+
             // 检查错误响应
             if (body.containsKey("error")) {
                 @SuppressWarnings("unchecked")
@@ -82,18 +88,9 @@ public class DeepSeekChatModel {
                 throw new RuntimeException("API 错误: " + error.get("message"));
             }
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) body.get("choices");
-            if (choices == null || choices.isEmpty()) {
-                throw new RuntimeException("AI 返回无 choices 字段");
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            String content = (String) message.get("content");
-
-            log.info("非流式调用完成，输出长度: {} 字符", content != null ? content.length() : 0);
-            return content != null ? content : "";
+            String content = extractContent(body);
+            log.info("非流式调用完成，输出长度: {} 字符", content.length());
+            return content;
 
         } catch (RuntimeException e) {
             throw e;
@@ -104,7 +101,9 @@ public class DeepSeekChatModel {
 
     /**
      * 流式调用（用于长输出，如 HTML/CSS/JS/后端代码）
-     * 通过 SSE 协议接收 token 并拼接完整结果
+     * Anthropic SSE 格式：
+     *   event: content_block_delta
+     *   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
      */
     public String streamChat(String userMessage) {
         Map<String, Object> requestBody = buildRequestBody(userMessage, 16384, true);
@@ -116,6 +115,7 @@ public class DeepSeekChatModel {
                     request -> {
                         request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
                         request.getHeaders().setBearerAuth(apiKey);
+                        request.getHeaders().set("anthropic-version", "2023-06-01");
                         objectMapper.writeValue(request.getBody(), requestBody);
                     },
                     response -> {
@@ -124,31 +124,21 @@ public class DeepSeekChatModel {
                                 new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
                             String line;
                             while ((line = reader.readLine()) != null) {
-                                // SSE 格式: "data: {json}" 或 "data: [DONE]"
+                                // Anthropic SSE: "data: {json}"
                                 if (line.startsWith("data: ")) {
                                     String data = line.substring(6).trim();
-                                    if ("[DONE]".equals(data)) {
-                                        break;
+                                    if (data.isEmpty() || "[DONE]".equals(data)) {
+                                        continue;
                                     }
                                     try {
                                         @SuppressWarnings("unchecked")
                                         Map<String, Object> map = objectMapper.readValue(data, Map.class);
-                                        @SuppressWarnings("unchecked")
-                                        List<Map<String, Object>> choices =
-                                                (List<Map<String, Object>>) map.get("choices");
-                                        if (choices != null && !choices.isEmpty()) {
-                                            @SuppressWarnings("unchecked")
-                                            Map<String, Object> delta =
-                                                    (Map<String, Object>) choices.get(0).get("delta");
-                                            if (delta != null) {
-                                                String content = (String) delta.get("content");
-                                                if (content != null) {
-                                                    result.append(content);
-                                                }
-                                            }
+                                        String text = extractDeltaText(map);
+                                        if (text != null) {
+                                            result.append(text);
                                         }
                                     } catch (Exception e) {
-                                        log.warn("解析 SSE 数据失败: {}", data, e);
+                                        log.warn("解析 SSE 数据失败: {}", data);
                                     }
                                 }
                             }
@@ -165,15 +155,98 @@ public class DeepSeekChatModel {
     }
 
     /**
-     * 构建 OpenAI 兼容的请求体
+     * 从非流式响应中提取文本
+     * 兼容两种格式：
+     *   Anthropic: content[0].text
+     *   OpenAI: choices[0].message.content
+     */
+    @SuppressWarnings("unchecked")
+    private String extractContent(Map<String, Object> body) {
+        // Anthropic 格式: content 数组
+        Object contentObj = body.get("content");
+        if (contentObj instanceof List) {
+            List<Map<String, Object>> contentList = (List<Map<String, Object>>) contentObj;
+            StringBuilder sb = new StringBuilder();
+            for (Map<String, Object> block : contentList) {
+                if ("text".equals(block.get("type"))) {
+                    sb.append(block.get("text"));
+                }
+            }
+            if (sb.length() > 0) {
+                return sb.toString();
+            }
+        }
+        // Anthropic 格式: 直接 content 字段为字符串
+        if (contentObj instanceof String) {
+            return (String) contentObj;
+        }
+
+        // OpenAI 兼容格式: choices[0].message.content
+        Object choicesObj = body.get("choices");
+        if (choicesObj instanceof List) {
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) choicesObj;
+            if (!choices.isEmpty()) {
+                Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                if (message != null) {
+                    String content = (String) message.get("content");
+                    if (content != null) {
+                        return content;
+                    }
+                }
+            }
+        }
+
+        log.error("无法解析响应，响应键: {}", body.keySet());
+        log.error("响应内容: {}", body);
+        throw new RuntimeException("AI 返回格式无法解析，响应键: " + body.keySet());
+    }
+
+    /**
+     * 从流式 SSE 数据中提取增量文本
+     * 兼容两种格式：
+     *   Anthropic: delta.text（content_block_delta 事件）
+     *   OpenAI: choices[0].delta.content
+     */
+    @SuppressWarnings("unchecked")
+    private String extractDeltaText(Map<String, Object> map) {
+        // Anthropic: { type: "content_block_delta", delta: { type: "text_delta", text: "..." } }
+        Object deltaObj = map.get("delta");
+        if (deltaObj instanceof Map) {
+            Map<String, Object> delta = (Map<String, Object>) deltaObj;
+            if (delta.containsKey("text")) {
+                return (String) delta.get("text");
+            }
+            if (delta.containsKey("content")) {
+                return (String) delta.get("content");
+            }
+        }
+
+        // OpenAI: { choices: [{ delta: { content: "..." } }] }
+        Object choicesObj = map.get("choices");
+        if (choicesObj instanceof List) {
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) choicesObj;
+            if (!choices.isEmpty()) {
+                Map<String, Object> delta = (Map<String, Object>) choices.get(0).get("delta");
+                if (delta != null) {
+                    return (String) delta.get("content");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 构建 Anthropic Messages API 请求体
      */
     private Map<String, Object> buildRequestBody(String userMessage, int maxTokens, boolean stream) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("model", modelName);
         body.put("messages", List.of(Map.of("role", "user", "content", userMessage)));
-        body.put("temperature", 0.7);
         body.put("max_tokens", maxTokens);
-        body.put("stream", stream);
+        if (stream) {
+            body.put("stream", true);
+        }
         return body;
     }
 }
