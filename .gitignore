@@ -8,4 +8,5 @@ target/
 *.war
 .DS_Store
 Thumbs.db
-dist/
+dist/derby.log
+logs/
