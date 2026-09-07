@@ -1,45 +1,51 @@
 ---
 name: "git-auto-commit"
-description: "Git 自动提交并推送（强制）：每次代码变更完成后必须 git add + commit + push。触发词：提交、push、commit、做完了一轮。强制触发：任何文件创建/修改/删除完成后、里程碑完成时、每次回答结束前。"
+description: "代码变更完成后自动 git add + commit + push。触发词：做完、完成、提交、commit、push、保存、好了、下一步、继续、推进、修复、新增、修改、重写、更新、实现、重构。强制触发：任何文件创建/修改/删除完成后、每次回答结束前、任何代码变更后。"
 ---
 
 # Git 自动提交并推送（git-auto-commit）
 
-**硬性规则：每次回答结束、完成一轮工作后，必须将当前所有变更提交到 git 并推送到远程仓库。**
+> **强制声明：每次对话/回答结束后，必须将本轮所有代码变更提交到 git 并推送到远程仓库。不可跳过，不可省略，不可延迟。**
+>
+> 这是硬性规则，不是建议。无论是否有代码变更，每次回答结束前都必须检查 git 状态，有变更就提交，无变更则跳过。
 
-## 触发时机
+## 触发时机（命中条件）
 
-- 每次回答结束前（已完成文件创建/修改/删除等操作）
-- 用户明确要求提交时
-- 一个里程碑或功能点完成后
+以下任一条件满足即触发：
 
-## 提交规则
+1. **每次回答结束前**（最高优先级）—— 本轮对话中发生了任何文件创建/修改/删除操作
+2. 用户说出以下任意关键词：提交、push、commit、做完、完成、好了、继续、下一步、推进、保存
+3. 任何代码修改操作完成后（文件编辑、创建、删除）
+4. 一个功能点或里程碑完成后
+5. 用户说"修复"、"新增"、"修改"、"重写"、"更新"、"实现"、"重构"等词并完成了代码变更
 
-1. 使用 `git add -A` 暂存所有变更
-2. 提交信息使用中文，简洁描述本轮做了什么，格式：`<动词>：<内容>`
-   - 如：`创建 M1 基础设施骨架与测试`
-   - 如：`新增 git-auto-commit skill 约束`
-   - 如：`修复 BusinessExceptionTest 类名冲突`
-3. 如果有未跟踪的敏感文件（.env、credentials、node_modules），提交前先检查并排除
-4. **提交后必须 push 到远程仓库**
+## 提交流程
 
-## 推送规则
+1. 检查 git 状态：`git status`（无变更则跳过，输出提示）
+2. 检查变更内容：`git diff --stat`
+3. 查看最近提交风格：`git log --oneline -5`
+4. 暂存所有变更：`git add -A`
+5. 提交：`git commit -m "<中文摘要>"`（格式：`<动词>：<内容>`）
+6. 推送：`git push`
 
-1. 如果远程仓库已配置（`git remote -v` 有 origin），提交后自动执行 `git push`
-2. 如果 push 失败（如远程有冲突），先 `git pull --rebase` 再 push
-3. 如果未配置远程仓库，跳过 push 并在提交信息中提示用户
+## 提交信息格式
 
-## 执行方式
-
-```bash
-git add -A
-git commit -m "<本轮变更摘要>"
-git push
 ```
+<动词>：<具体内容>
+```
+
+动词示例：新增、修复、重构、更新、删除、优化、完成、添加
+
+示例：
+- `新增 git-auto-commit skill 约束`
+- `修复 CORS 403 和注册 400 错误`
+- `重构 DeepSeekChatModel 兼容 Anthropic 格式`
+- `完成 M5 端到端验证`
 
 ## 禁止事项
 
-- 禁止在 commit message 中写无意义的 "update"、"fix"、"WIP"
-- 禁止提交 node_modules、.idea、dist、target 等构建产物目录（通过 .gitignore 排除）
+- 禁止跳过提交（无变更除外）
+- 禁止提交信息写 "update"、"fix"、"WIP"、"done" 等无意义词
+- 禁止提交 node_modules、.idea、dist、target、.env、credentials 等（通过 .gitignore 排除）
+- 禁止 `git push --force` 或 `--force-with-lease`
 - 禁止在未完成当前任务时提前提交
-- 禁止使用 `git push --force` 或 `git push --force-with-lease`

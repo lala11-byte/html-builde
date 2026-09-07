@@ -63,17 +63,14 @@
         </el-tabs>
       </div>
       <div class="canvas">
-        <div v-if="previewUrl" class="preview-container">
-          <div class="preview-toolbar">
-            <span>预览模式</span>
-            <el-button size="small" @click="refreshPreview">刷新</el-button>
-            <el-button size="small" @click="openInNewTab">新窗口打开</el-button>
-          </div>
-          <iframe :src="previewUrl" class="preview-iframe" frameborder="0"></iframe>
-        </div>
-        <div v-else class="placeholder-text">
-          生成网站后，预览将显示在这里
-        </div>
+        <div v-if="!previewUrl" class="placeholder-text">画布（生成网站后将在此预览）</div>
+        <iframe
+          v-else
+          :src="previewUrl"
+          class="preview-frame"
+          sandbox="allow-scripts allow-same-origin"
+          title="网站预览"
+        />
       </div>
       <div class="panel right-panel">属性面板（待开发）</div>
     </div>
@@ -84,7 +81,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listPages, submitGenerate } from '../api'
+import { listPages, submitGenerate, getLatestByPage } from '../api'
 
 const route = useRoute()
 const router = useRouter()
@@ -100,7 +97,6 @@ const generating = ref(false)
 const progressLogs = ref([])
 const downloadUrl = ref('')
 const previewUrl = ref('')
-const currentTaskId = ref('')
 let eventSource = null
 
 const promptTemplates = {
@@ -162,7 +158,7 @@ const handleGenerate = async () => {
   previewUrl.value = ''
 
   try {
-    const result = await submitGenerate(aiPrompt.value)
+    const result = await submitGenerate(aiPrompt.value, route.params.pageId)
     const taskId = result.id
 
     progressLogs.value.push('[提交] 任务已提交，开始生成...')
@@ -177,8 +173,7 @@ const handleGenerate = async () => {
     eventSource.addEventListener('complete', (event) => {
       const data = JSON.parse(event.data)
       downloadUrl.value = data.downloadUrl
-      currentTaskId.value = taskId
-      previewUrl.value = `http://localhost:8080/api/v1/generator/preview/${taskId}/index.html`
+      previewUrl.value = data.previewUrl
       generating.value = false
       progressLogs.value.push('[完成] 网站生成完成！')
       eventSource.close()
@@ -209,26 +204,23 @@ const handleDownload = () => {
   }
 }
 
-const refreshPreview = () => {
-  if (previewUrl.value) {
-    const url = previewUrl.value
-    previewUrl.value = ''
-    setTimeout(() => { previewUrl.value = url }, 0)
-  }
-}
-
-const openInNewTab = () => {
-  if (previewUrl.value) {
-    window.open(previewUrl.value, '_blank')
-  }
-}
-
 onMounted(async () => {
   try {
     const data = await listPages(projectId)
     pages.value = data.records || []
   } catch {
     // 忽略
+  }
+
+  // 加载该页面已有的生成结果
+  try {
+    const latest = await getLatestByPage(route.params.pageId)
+    if (latest && latest.previewUrl) {
+      previewUrl.value = latest.previewUrl
+      downloadUrl.value = latest.downloadUrl
+    }
+  } catch {
+    // 页面暂无生成结果，忽略
   }
 })
 
@@ -279,8 +271,12 @@ onUnmounted(() => {
   padding: 0;
   background: #f0f2f5;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+}
+.preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
 }
 .placeholder-text {
   color: #999;
@@ -313,29 +309,5 @@ onUnmounted(() => {
 }
 .log-complete {
   color: #67c23a;
-}
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.preview-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #dcdfe6;
-  font-size: 14px;
-  color: #606266;
-}
-.preview-iframe {
-  flex: 1;
-  width: 100%;
-  border: none;
 }
 </style>

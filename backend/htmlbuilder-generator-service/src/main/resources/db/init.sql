@@ -1,11 +1,13 @@
 CREATE TABLE IF NOT EXISTS generation_task (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id BIGINT NOT NULL,
+  page_id BIGINT,
   prompt TEXT NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/RUNNING/COMPLETED/FAILED',
   output_path VARCHAR(500),
   error_message TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_user (user_id)
+  INDEX idx_user (user_id),
+  INDEX idx_page (page_id)
 );

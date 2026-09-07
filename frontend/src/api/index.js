@@ -58,11 +58,16 @@ export function deletePage(projectId, pageId) {
 // === AI 生成器 ===
 
 // 提交生成任务
-export function submitGenerate(prompt) {
-  return request.post('/generator/generate', { prompt })
+export function submitGenerate(prompt, pageId) {
+  return request.post('/generator/generate', { prompt, pageId })
 }
 
 // 获取任务状态
 export function getTaskStatus(taskId) {
   return request.get(`/generator/tasks/${taskId}`)
+}
+
+// 查询页面最新的已完成生成结果
+export function getLatestByPage(pageId) {
+  return request.get(`/generator/pages/${pageId}/latest`)
 }

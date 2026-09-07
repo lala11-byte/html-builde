@@ -9,6 +9,7 @@ public class GenerationTask {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long userId;
+    private Long pageId;
     private String prompt;
     private String status; // PENDING, RUNNING, COMPLETED, FAILED
     private String outputPath;
@@ -22,6 +23,8 @@ public class GenerationTask {
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+    public Long getPageId() { return pageId; }
+    public void setPageId(Long pageId) { this.pageId = pageId; }
     public String getPrompt() { return prompt; }
     public void setPrompt(String prompt) { this.prompt = prompt; }
     public String getStatus() { return status; }

@@ -1,5 +1,6 @@
 package com.htmlbuilder.generator.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.htmlbuilder.generator.agent.AgentOrchestrator;
 import com.htmlbuilder.generator.entity.GenerationTask;
 import com.htmlbuilder.generator.mapper.GenerationTaskMapper;
@@ -38,9 +39,10 @@ public class GeneratorService {
     /**
      * 提交生成任务
      */
-    public Long submitTask(Long userId, String prompt) {
+    public Long submitTask(Long userId, Long pageId, String prompt) {
         GenerationTask task = new GenerationTask();
         task.setUserId(userId);
+        task.setPageId(pageId);
         task.setPrompt(prompt);
         task.setStatus("PENDING");
         task.setCreatedAt(LocalDateTime.now());
@@ -86,7 +88,7 @@ public class GeneratorService {
 
                 emitter.send(SseEmitter.event()
                         .name("complete")
-                        .data("{\"status\":\"COMPLETED\",\"downloadUrl\":\"/api/v1/generator/download/" + taskId + "\"}"));
+                        .data("{\"status\":\"COMPLETED\",\"downloadUrl\":\"/api/v1/generator/download/" + taskId + "\",\"previewUrl\":\"/api/v1/generator/preview/" + taskId + "/\"}"));
                 emitter.complete();
 
             } catch (Exception e) {
@@ -144,5 +146,18 @@ public class GeneratorService {
         } catch (IOException e) {
             log.warn("Failed to send error", e);
         }
+    }
+
+    /**
+     * 查询页面最新的已完成生成任务
+     */
+    public GenerationTask getLatestByPageId(Long pageId) {
+        return taskMapper.selectOne(
+            new LambdaQueryWrapper<GenerationTask>()
+                .eq(GenerationTask::getPageId, pageId)
+                .eq(GenerationTask::getStatus, "COMPLETED")
+                .orderByDesc(GenerationTask::getCreatedAt)
+                .last("LIMIT 1")
+        );
     }
 }

@@ -5,6 +5,7 @@ public class TaskVO {
     private String status;
     private String progress;
     private String downloadUrl;
+    private String previewUrl;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -14,4 +15,6 @@ public class TaskVO {
     public void setProgress(String progress) { this.progress = progress; }
     public String getDownloadUrl() { return downloadUrl; }
     public void setDownloadUrl(String downloadUrl) { this.downloadUrl = downloadUrl; }
+    public String getPreviewUrl() { return previewUrl; }
+    public void setPreviewUrl(String previewUrl) { this.previewUrl = previewUrl; }
 }

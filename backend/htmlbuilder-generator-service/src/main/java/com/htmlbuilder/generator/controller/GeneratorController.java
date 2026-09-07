@@ -13,11 +13,17 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/v1/generator")
@@ -32,6 +38,42 @@ public class GeneratorController {
     }
 
     /**
+     * 预览生成的文件（静态资源服务）
+     * GET /api/v1/generator/preview/{taskId}/            → public/index.html
+     * GET /api/v1/generator/preview/{taskId}/public/css/style.css
+     * GET /api/v1/generator/preview/{taskId}/public/js/app.js
+     */
+    @GetMapping("/preview/{taskId}/**")
+    public Resource preview(@PathVariable Long taskId, HttpServletRequest request) {
+        Path outputPath = generatorService.getOutputPath(taskId);
+        if (outputPath == null || !Files.exists(outputPath)) {
+            throw new BusinessException(2001, "生成结果不存在或已被清理");
+        }
+
+        // 提取 /preview/{taskId}/ 后面的路径
+        String fullPath = request.getRequestURI();
+        String prefix = "/api/v1/generator/preview/" + taskId + "/";
+        String relativePath = "";
+        if (fullPath.length() > prefix.length()) {
+            relativePath = fullPath.substring(fullPath.indexOf(prefix) + prefix.length());
+        }
+
+        // 默认返回 public/index.html
+        Path filePath;
+        if (relativePath.isEmpty() || relativePath.equals("/")) {
+            filePath = outputPath.resolve("public/index.html");
+        } else {
+            filePath = outputPath.resolve(relativePath);
+        }
+
+        if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
+            throw new BusinessException(2001, "文件不存在: " + relativePath);
+        }
+
+        return new FileSystemResource(filePath);
+    }
+
+    /**
      * 提交生成任务
      */
     @PostMapping("/generate")
@@ -39,7 +81,7 @@ public class GeneratorController {
             @RequestHeader("X-User-Id") Long userId,
             @Valid @RequestBody GenerateRequest request) {
 
-        Long taskId = generatorService.submitTask(userId, request.getPrompt());
+        Long taskId = generatorService.submitTask(userId, request.getPageId(), request.getPrompt());
 
         TaskVO vo = new TaskVO();
         vo.setId(taskId);
@@ -72,7 +114,7 @@ public class GeneratorController {
         if ("COMPLETED".equals(task.getStatus())) {
             try {
                 emitter.send(SseEmitter.event().name("complete")
-                        .data("{\"status\":\"COMPLETED\",\"downloadUrl\":\"/api/v1/generator/download/" + taskId + "\"}"));
+                        .data("{\"status\":\"COMPLETED\",\"downloadUrl\":\"/api/v1/generator/download/" + taskId + "\",\"previewUrl\":\"/api/v1/generator/preview/" + taskId + "/\"}"));
                 emitter.complete();
             } catch (IOException e) {
                 log.warn("Failed to send complete event", e);
@@ -125,65 +167,6 @@ public class GeneratorController {
     }
 
     /**
-     * 预览生成的网站（静态文件服务）
-     * 访问路径: /api/v1/generator/preview/{taskId}/index.html
-     */
-    @GetMapping("/preview/{taskId}/**")
-    public void preview(@PathVariable Long taskId, jakarta.servlet.http.HttpServletRequest request,
-                        HttpServletResponse response) {
-        Path outputPath = generatorService.getOutputPath(taskId);
-        if (outputPath == null || !Files.exists(outputPath)) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        // 从请求路径中提取文件路径
-        String fullPath = request.getRequestURI();
-        String prefix = "/api/v1/generator/preview/" + taskId + "/";
-        String relativePath = fullPath.substring(fullPath.indexOf(prefix) + prefix.length());
-        if (relativePath.isEmpty()) {
-            relativePath = "index.html";
-        }
-
-        // 安全检查：防止路径穿越
-        if (relativePath.contains("..")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-
-        Path filePath = outputPath.resolve("public").resolve(relativePath);
-        if (!Files.exists(filePath)) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        try {
-            // 根据扩展名设置 Content-Type
-            String fileName = filePath.getFileName().toString();
-            if (fileName.endsWith(".html")) {
-                response.setContentType("text/html; charset=UTF-8");
-            } else if (fileName.endsWith(".css")) {
-                response.setContentType("text/css; charset=UTF-8");
-            } else if (fileName.endsWith(".js")) {
-                response.setContentType("application/javascript; charset=UTF-8");
-            } else if (fileName.endsWith(".png")) {
-                response.setContentType("image/png");
-            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-                response.setContentType("image/jpeg");
-            } else if (fileName.endsWith(".svg")) {
-                response.setContentType("image/svg+xml");
-            } else {
-                response.setContentType("application/octet-stream");
-            }
-
-            Files.copy(filePath, response.getOutputStream());
-        } catch (IOException e) {
-            log.error("Failed to serve preview file: {}", filePath, e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
      * 获取任务状态
      */
     @GetMapping("/tasks/{taskId}")
@@ -198,11 +181,30 @@ public class GeneratorController {
         vo.setStatus(task.getStatus());
         if ("COMPLETED".equals(task.getStatus())) {
             vo.setDownloadUrl("/api/v1/generator/download/" + taskId);
+            vo.setPreviewUrl("/api/v1/generator/preview/" + taskId + "/");
         }
         if ("FAILED".equals(task.getStatus())) {
             vo.setProgress(task.getErrorMessage());
         }
 
+        return Result.success(vo);
+    }
+
+    /**
+     * 查询页面最新的已完成生成结果（用于页面加载时恢复预览）
+     */
+    @GetMapping("/pages/{pageId}/latest")
+    public Result<TaskVO> getLatestByPage(@PathVariable Long pageId) {
+        GenerationTask task = generatorService.getLatestByPageId(pageId);
+        if (task == null) {
+            return Result.fail(2001, "该页面暂无生成结果");
+        }
+
+        TaskVO vo = new TaskVO();
+        vo.setId(task.getId());
+        vo.setStatus(task.getStatus());
+        vo.setDownloadUrl("/api/v1/generator/download/" + task.getId());
+        vo.setPreviewUrl("/api/v1/generator/preview/" + task.getId() + "/");
         return Result.success(vo);
     }
 }
