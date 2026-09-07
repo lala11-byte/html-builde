@@ -216,6 +216,7 @@ INSERT INTO table_name (col1, col2) VALUES ('val5', 'val6');
 const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
+const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -225,14 +226,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 初始化数据库
+// 初始化数据库（数据库已由 database/init.sql 定义，直接读取执行）
 const db = new Database(path.join(__dirname, 'data.db'));
 db.pragma('journal_mode = WAL');
-
-// 执行建表脚本
-const initSQL = `
-...建表 SQL...
-`;
+const initSQL = fs.readFileSync(path.join(__dirname, 'database', 'init.sql'), 'utf8');
 db.exec(initSQL);
 
 // RESTful API 路由
@@ -253,8 +250,9 @@ app.listen(PORT, () => {
 4. API 返回 JSON 格式 { success: true, data: ... } 或 { success: false, error: "..." }
 5. API 错误消息（error 字段）和代码注释必须使用简体中文
 6. 静态文件从 public/ 目录提供
-7. 代码必须完整，不得截断或省略
-8. 只输出 JavaScript 代码，不要输出任何解释或额外文字
+7. 【关键】建表 SQL 必须通过 fs.readFileSync 读取 database/init.sql 文件执行，严禁在 server.js 中内联任何 CREATE TABLE/INSERT 语句（SQL 只出现在 db.prepare() 的参数化查询中）
+8. 代码必须完整，不得截断或省略
+9. 只输出 JavaScript 代码，不要输出任何解释或额外文字，严禁使用 ``` 等 markdown 代码块围栏
 """;
 
         String fullPrompt = systemPrompt + "\n\n" +
@@ -287,11 +285,33 @@ app.listen(PORT, () => {
     }
 
     private void writeDatabaseFiles(String projectDir, String dbSchema) throws IOException {
-        fileSystemTool.writeFile(projectDir, "database/init.sql", dbSchema);
+        fileSystemTool.writeFile(projectDir, "database/init.sql", stripCodeFences(dbSchema));
     }
 
     private void writeBackendFiles(String projectDir, String backendCode) throws IOException {
-        fileSystemTool.writeFile(projectDir, "server.js", backendCode);
+        fileSystemTool.writeFile(projectDir, "server.js", stripCodeFences(backendCode));
+    }
+
+    /**
+     * 剥离 AI 输出中误加的 markdown 代码块围栏（```lang ... ```），
+     * 防止围栏混入文件内容导致 JS/SQL 语法错误
+     */
+    private String stripCodeFences(String content) {
+        if (content == null) {
+            return null;
+        }
+        String trimmed = content.trim();
+        if (trimmed.startsWith("```")) {
+            int firstNewline = trimmed.indexOf('\n');
+            if (firstNewline > 0) {
+                trimmed = trimmed.substring(firstNewline + 1);
+            }
+        }
+        if (trimmed.endsWith("```")) {
+            int fenceIdx = trimmed.lastIndexOf("```");
+            trimmed = trimmed.substring(0, fenceIdx);
+        }
+        return trimmed.trim();
     }
 
     private void generateProjectConfig(String projectDir) throws IOException {

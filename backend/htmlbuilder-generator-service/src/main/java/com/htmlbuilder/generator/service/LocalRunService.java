@@ -88,6 +88,9 @@ public class LocalRunService {
             appendLog(taskId, "[运行] 依赖安装完成");
         }
 
+        appendLog(taskId, "[运行] 正在校验 server.js 语法...");
+        validateSyntax(taskId, dir);
+
         appendLog(taskId, "[运行] 正在本机启动网站服务（端口 " + port + "）...");
         try {
             ProcessBuilder pb = new ProcessBuilder("node", "server.js");
@@ -178,6 +181,42 @@ public class LocalRunService {
     @PreDestroy
     public void shutdown() {
         processes.keySet().forEach(this::stop);
+    }
+
+    /**
+     * 启动前校验 server.js 语法（node --check），
+     * 提前拦截 AI 生成代码的语法错误，给出明确的错误定位
+     */
+    private void validateSyntax(Long taskId, Path dir) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("node", "--check", "server.js");
+            pb.directory(dir.toFile());
+            pb.redirectErrorStream(true);
+            Process proc = pb.start();
+            StringBuilder errors = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (errors.length() < 1500) {
+                        errors.append(line).append('\n');
+                    }
+                }
+            }
+            if (!proc.waitFor(15, TimeUnit.SECONDS)) {
+                proc.destroyForcibly();
+                throw new BusinessException(2002, "server.js 语法校验超时");
+            }
+            if (proc.exitValue() != 0) {
+                appendLog(taskId, "[校验] 语法错误:\n" + errors);
+                throw new BusinessException(2002, "生成的 server.js 存在语法错误，请重新生成网站。错误信息:\n" + errors);
+            }
+            appendLog(taskId, "[校验] server.js 语法校验通过");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(2002, "语法校验执行失败: " + e.getMessage());
+        }
     }
 
     private void npmInstall(Long taskId, Path dir) {
