@@ -5,6 +5,8 @@ import com.htmlbuilder.common.result.Result;
 import com.htmlbuilder.generator.dto.GenerateRequest;
 import com.htmlbuilder.generator.entity.GenerationTask;
 import com.htmlbuilder.generator.service.GeneratorService;
+import com.htmlbuilder.generator.service.LocalRunService;
+import com.htmlbuilder.generator.vo.RunStatusVO;
 import com.htmlbuilder.generator.vo.TaskVO;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -32,9 +34,11 @@ public class GeneratorController {
     private static final Logger log = LoggerFactory.getLogger(GeneratorController.class);
 
     private final GeneratorService generatorService;
+    private final LocalRunService localRunService;
 
-    public GeneratorController(GeneratorService generatorService) {
+    public GeneratorController(GeneratorService generatorService, LocalRunService localRunService) {
         this.generatorService = generatorService;
+        this.localRunService = localRunService;
     }
 
     /**
@@ -206,5 +210,30 @@ public class GeneratorController {
         vo.setDownloadUrl("/api/v1/generator/download/" + task.getId());
         vo.setPreviewUrl("/api/v1/generator/preview/" + task.getId() + "/");
         return Result.success(vo);
+    }
+
+    /**
+     * 本机启动生成的网站（Node.js 后端 + SQLite 数据库自动初始化）
+     * 首次启动自动执行 npm install
+     */
+    @PostMapping("/run/{taskId}/start")
+    public Result<RunStatusVO> startRun(@PathVariable Long taskId) {
+        return Result.success(localRunService.start(taskId));
+    }
+
+    /**
+     * 停止本机运行的网站（离开编辑器页面时前端自动调用）
+     */
+    @PostMapping("/run/{taskId}/stop")
+    public Result<RunStatusVO> stopRun(@PathVariable Long taskId) {
+        return Result.success(localRunService.stop(taskId));
+    }
+
+    /**
+     * 查询本机运行状态
+     */
+    @GetMapping("/run/{taskId}/status")
+    public Result<RunStatusVO> runStatus(@PathVariable Long taskId) {
+        return Result.success(localRunService.status(taskId));
     }
 }

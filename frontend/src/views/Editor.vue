@@ -60,6 +60,51 @@
               </div>
             </div>
           </el-tab-pane>
+          <el-tab-pane label="本地运行">
+            <div class="run-panel">
+              <div class="run-status-row">
+                <span>运行状态：</span>
+                <el-tag :type="runStatus.running ? 'success' : 'info'" size="small">
+                  {{ runStatus.running ? '运行中' : '未运行' }}
+                </el-tag>
+              </div>
+              <div v-if="runStatus.running" class="run-url">
+                http://localhost:{{ runStatus.port }}
+              </div>
+              <div v-if="!currentTaskId" class="run-tip">当前页面暂无生成结果，请先在「AI 生成」中生成网站</div>
+              <div class="run-actions">
+                <el-button
+                  type="primary"
+                  size="small"
+                  :loading="runStarting"
+                  :disabled="!currentTaskId || runStatus.running"
+                  @click="handleStartRun"
+                >
+                  {{ runStarting ? '启动中...' : '启动本机运行' }}
+                </el-button>
+                <el-button
+                  type="danger"
+                  size="small"
+                  :disabled="!runStatus.running"
+                  @click="handleStopRun"
+                >
+                  停止
+                </el-button>
+                <el-button
+                  v-if="runStatus.running"
+                  type="success"
+                  size="small"
+                  @click="openRunSite"
+                >
+                  打开网站
+                </el-button>
+              </div>
+              <div class="run-tip">首次启动需安装依赖，可能需要几分钟；离开本页面将自动停止运行</div>
+              <div v-if="runLogs.length > 0" class="progress-log">
+                <div v-for="(log, idx) in runLogs" :key="idx" class="log-line">{{ log }}</div>
+              </div>
+            </div>
+          </el-tab-pane>
         </el-tabs>
       </div>
       <div class="canvas">
@@ -78,10 +123,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listPages, submitGenerate, getLatestByPage } from '../api'
+import { listPages, submitGenerate, getLatestByPage, startRun, stopRun, getRunStatus } from '../api'
 
 const route = useRoute()
 const router = useRouter()
@@ -98,6 +143,12 @@ const progressLogs = ref([])
 const downloadUrl = ref('')
 const previewUrl = ref('')
 let eventSource = null
+
+// 本地运行
+const currentTaskId = ref('')
+const runStatus = ref({ running: false, port: null })
+const runStarting = ref(false)
+const runLogs = ref([])
 
 // 网关地址：后端返回的是相对路径，iframe/window.open 需要绝对地址，
 // 否则会解析到前端源（localhost:5173），加载成 HTML Builder 自己的页面
@@ -165,6 +216,7 @@ const handleGenerate = async () => {
   try {
     const result = await submitGenerate(aiPrompt.value, route.params.pageId)
     const taskId = result.id
+    currentTaskId.value = taskId
 
     progressLogs.value.push('[提交] 任务已提交，开始生成...')
 
@@ -209,7 +261,8 @@ const handleDownload = () => {
   }
 }
 
-onMounted(async () => {
+// 加载页面数据（页面列表 + 已有生成结果 + 运行状态）
+const loadPageData = async () => {
   try {
     const data = await listPages(projectId)
     pages.value = data.records || []
@@ -223,17 +276,89 @@ onMounted(async () => {
     if (latest && latest.previewUrl) {
       previewUrl.value = toAbsolute(latest.previewUrl)
       downloadUrl.value = toAbsolute(latest.downloadUrl)
+      currentTaskId.value = latest.id
+      // 恢复运行状态（例如生成服务重启后进程仍在运行）
+      const status = await getRunStatus(latest.id)
+      runStatus.value = status
+      if (status.logs) runLogs.value = status.logs
+    } else {
+      currentTaskId.value = ''
+      previewUrl.value = ''
+      runStatus.value = { running: false, port: null }
     }
   } catch {
-    // 页面暂无生成结果，忽略
+    currentTaskId.value = ''
+  }
+}
+
+// 切换页面时（组件被路由复用，不触发 onMounted）重新加载
+watch(() => route.params.pageId, () => {
+  if (route.name === 'Editor') {
+    loadPageData()
   }
 })
 
+// 离开页面时停止本机运行
+const stopRunOnLeave = () => {
+  if (!currentTaskId.value) return
+  const token = localStorage.getItem('accessToken')
+  fetch(`${GATEWAY_BASE}/api/v1/generator/run/${currentTaskId.value}/stop`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    keepalive: true
+  }).catch(() => {})
+}
+
+onMounted(() => {
+  loadPageData()
+  window.addEventListener('beforeunload', stopRunOnLeave)
+})
+
 onUnmounted(() => {
+  window.removeEventListener('beforeunload', stopRunOnLeave)
   if (eventSource) {
     eventSource.close()
   }
+  // SPA 路由离开（关闭浏览器走 beforeunload）
+  stopRunOnLeave()
 })
+
+// 本地运行操作
+const handleStartRun = async () => {
+  if (!currentTaskId.value) return
+  runStarting.value = true
+  runLogs.value = ['[运行] 正在启动...']
+  try {
+    const status = await startRun(currentTaskId.value)
+    runStatus.value = status
+    runLogs.value = status.logs || []
+    if (status.running) {
+      ElMessage.success('网站已在本机启动')
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '启动失败')
+  } finally {
+    runStarting.value = false
+  }
+}
+
+const handleStopRun = async () => {
+  if (!currentTaskId.value) return
+  try {
+    const status = await stopRun(currentTaskId.value)
+    runStatus.value = { running: false, port: status.port }
+    if (status.logs) runLogs.value = status.logs
+    ElMessage.success('网站已停止')
+  } catch (e) {
+    ElMessage.error(e.message || '停止失败')
+  }
+}
+
+const openRunSite = () => {
+  if (runStatus.value.port) {
+    window.open(`http://localhost:${runStatus.value.port}`, '_blank')
+  }
+}
 </script>
 
 <style scoped>
@@ -292,6 +417,32 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+.run-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.run-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.run-url {
+  font-family: monospace;
+  font-size: 12px;
+  color: #409eff;
+  word-break: break-all;
+}
+.run-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.run-tip {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
 }
 .progress-log {
   margin-top: 8px;

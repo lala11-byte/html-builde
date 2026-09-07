@@ -117,6 +117,7 @@ public class AgentOrchestrator {
 - 至少 3 个页面（首页、列表页、详情页）
 - 至少 2 张关联表
 - 每个页面必须有完整的 name/title/description/route
+- 所有输出内容（siteName、title、description、features 等）必须使用简体中文
 - 只输出 JSON，不要输出任何其他内容
 """;
 
@@ -153,13 +154,14 @@ public class AgentOrchestrator {
 ```
 【严格要求】
 1. 必须生成所有规划中的页面，每个页面作为独立的 HTML 文件
-2. 使用现代 CSS（Flexbox/Grid），响应式布局（移动端适配）
-3. JavaScript 使用 Fetch API 调用后端接口
-4. 每个 HTML 文件必须是完整可独立渲染的文档
-5. 所有页面共享同一个 style.css 和 app.js
-6. 代码必须完整，不得使用省略号、注释占位符或截断
-7. 样式美观、现代，参考 Material Design 或类似设计规范
-8. 只输出代码，不要输出任何解释、说明或额外文字
+2. 网站界面语言必须为简体中文：所有页面标题、导航菜单、按钮文字、表单标签、占位符、提示文案、代码注释均使用简体中文，<html lang="zh-CN">
+3. 使用现代 CSS（Flexbox/Grid），响应式布局（移动端适配）
+4. JavaScript 使用 Fetch API 调用后端接口
+5. 每个 HTML 文件必须是完整可独立渲染的文档
+6. 所有页面共享同一个 style.css 和 app.js
+7. 代码必须完整，不得使用省略号、注释占位符或截断
+8. 样式美观、现代，参考 Material Design 或类似设计规范
+9. 只输出代码，不要输出任何解释、说明或额外文字
 """;
 
         return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan, progressCallback);
@@ -194,8 +196,9 @@ INSERT INTO table_name (col1, col2) VALUES ('val5', 'val6');
 2. 每张表至少 3 条种子数据
 3. 使用 SQLite 语法（INTEGER PRIMARY KEY AUTOINCREMENT 等）
 4. 建表语句使用 IF NOT EXISTS
-5. 所有 SQL 语句必须完整，不得截断或省略
-6. 只输出 SQL 代码，不要输出任何解释或额外文字
+5. SQL 注释、COMMENT 说明和种子数据内容必须使用简体中文
+6. 所有 SQL 语句必须完整，不得截断或省略
+7. 只输出 SQL 代码，不要输出任何解释或额外文字
 """;
 
         return chatModel.streamChat(systemPrompt + "\n\n用户需求：" + prompt + "\n\n网站规划：" + plan, progressCallback);
@@ -248,9 +251,10 @@ app.listen(PORT, () => {
 2. 使用 better-sqlite3 同步 API，不使用 async/await
 3. 所有 SQL 查询使用参数化（db.prepare().run() 或 db.prepare().get()）
 4. API 返回 JSON 格式 { success: true, data: ... } 或 { success: false, error: "..." }
-5. 静态文件从 public/ 目录提供
-6. 代码必须完整，不得截断或省略
-7. 只输出 JavaScript 代码，不要输出任何解释或额外文字
+5. API 错误消息（error 字段）和代码注释必须使用简体中文
+6. 静态文件从 public/ 目录提供
+7. 代码必须完整，不得截断或省略
+8. 只输出 JavaScript 代码，不要输出任何解释或额外文字
 """;
 
         String fullPrompt = systemPrompt + "\n\n" +

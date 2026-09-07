@@ -71,3 +71,18 @@ export function getTaskStatus(taskId) {
 export function getLatestByPage(pageId) {
   return request.get(`/generator/pages/${pageId}/latest`)
 }
+
+// 本机启动生成的网站（首次需 npm install，超时放宽到 6 分钟）
+export function startRun(taskId) {
+  return request.post(`/generator/run/${taskId}/start`, null, { timeout: 360000 })
+}
+
+// 停止本机运行的网站
+export function stopRun(taskId) {
+  return request.post(`/generator/run/${taskId}/stop`)
+}
+
+// 查询本机运行状态
+export function getRunStatus(taskId) {
+  return request.get(`/generator/run/${taskId}/status`)
+}
