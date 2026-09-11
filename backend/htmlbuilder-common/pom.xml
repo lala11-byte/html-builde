@@ -41,5 +41,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- 仅供测试：构造 WebFlux 版 NoResourceFoundException 验证 404 映射，不传递给使用方 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
