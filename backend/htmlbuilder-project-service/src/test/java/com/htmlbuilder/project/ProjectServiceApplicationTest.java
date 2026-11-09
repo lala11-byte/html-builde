@@ -1,6 +1,7 @@
 package com.htmlbuilder.project;
 
 import com.htmlbuilder.project.mapper.PageMapper;
+import com.htmlbuilder.project.mapper.ProjectLikeMapper;
 import com.htmlbuilder.project.mapper.ProjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,9 @@ class ProjectServiceApplicationTest {
 
     @MockBean
     private PageMapper pageMapper;
+
+    @MockBean
+    private ProjectLikeMapper projectLikeMapper;
 
     @Test
     void contextLoads() {

@@ -38,6 +38,9 @@ public class ProjectServiceTest {
     @MockBean
     private com.htmlbuilder.project.mapper.PageMapper pageMapper;
 
+    @MockBean
+    private com.htmlbuilder.project.mapper.ProjectLikeMapper projectLikeMapper;
+
     /* ========== M3-1: 创建项目 ========== */
 
     @Test
@@ -276,5 +279,52 @@ public class ProjectServiceTest {
 
         when(projectMapper.selectById(1L)).thenReturn(existing);
         assertThrows(BusinessException.class, () -> projectService.createPage(1L, 1L, dto));
+    }
+
+    /* ========== 作品广场：点赞切换 ========== */
+
+    @Test
+    void toggleLike_notLiked_shouldInsertAndReturnTrue() {
+        Project project = new Project();
+        project.setId(1L);
+        project.setUserId(2L);
+
+        when(projectMapper.selectById(1L)).thenReturn(project);
+        when(projectLikeMapper.selectOne(any())).thenReturn(null);
+        when(projectLikeMapper.insert(any(com.htmlbuilder.project.entity.ProjectLike.class))).thenReturn(1);
+        when(projectLikeMapper.selectCount(any())).thenReturn(1L);
+
+        var result = projectService.toggleLike(1L, 1L);
+        assertTrue(result.getLiked());
+        assertEquals(1L, result.getLikeCount());
+        verify(projectLikeMapper).insert(any(com.htmlbuilder.project.entity.ProjectLike.class));
+    }
+
+    @Test
+    void toggleLike_alreadyLiked_shouldDeleteAndReturnFalse() {
+        Project project = new Project();
+        project.setId(1L);
+        project.setUserId(2L);
+
+        com.htmlbuilder.project.entity.ProjectLike existing = new com.htmlbuilder.project.entity.ProjectLike();
+        existing.setId(9L);
+        existing.setProjectId(1L);
+        existing.setUserId(1L);
+
+        when(projectMapper.selectById(1L)).thenReturn(project);
+        when(projectLikeMapper.selectOne(any())).thenReturn(existing);
+        when(projectLikeMapper.deleteById(9L)).thenReturn(1);
+        when(projectLikeMapper.selectCount(any())).thenReturn(0L);
+
+        var result = projectService.toggleLike(1L, 1L);
+        assertFalse(result.getLiked());
+        assertEquals(0L, result.getLikeCount());
+        verify(projectLikeMapper).deleteById(9L);
+    }
+
+    @Test
+    void toggleLike_projectNotFound_shouldThrowBusinessException() {
+        when(projectMapper.selectById(999L)).thenReturn(null);
+        assertThrows(BusinessException.class, () -> projectService.toggleLike(1L, 999L));
     }
 }

@@ -36,6 +36,45 @@ public class UserServiceTest {
     @MockBean
     private com.htmlbuilder.user.mapper.UserMapper userMapper;
 
+    @MockBean
+    private com.htmlbuilder.user.mapper.UserProjectMapper userProjectMapper;
+
+    @Test
+    void getUserInfo_shouldReturnNickname() {
+        User user = new User();
+        user.setId(7L);
+        user.setUsername("testuser");
+        user.setNickname("小匠");
+
+        when(userMapper.selectById(7L)).thenReturn(user);
+
+        UserVO result = userService.getUserInfo(7L);
+        assertNotNull(result);
+        assertEquals("小匠", result.getNickname());
+        assertEquals("testuser", result.getUsername());
+    }
+
+    @Test
+    void updateNickname_shouldPersistAndReturn() {
+        User user = new User();
+        user.setId(7L);
+        user.setUsername("testuser");
+        user.setNickname("旧昵称");
+
+        when(userMapper.selectById(7L)).thenReturn(user);
+
+        UserVO result = userService.updateNickname(7L, "新昵称");
+        assertEquals("新昵称", result.getNickname());
+        verify(userMapper).updateById(user);
+    }
+
+    @Test
+    void updateNickname_userNotFound_shouldThrowBusinessException() {
+        when(userMapper.selectById(99L)).thenReturn(null);
+
+        assertThrows(BusinessException.class, () -> userService.updateNickname(99L, "新昵称"));
+    }
+
     @Test
     void register_shouldReturnUserVO() {
         RegisterDTO dto = new RegisterDTO();

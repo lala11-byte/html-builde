@@ -1,0 +1,57 @@
+[
+  {
+    "id": "block-navbar",
+    "name": "顶部导航栏",
+    "category": "基础区块",
+    "kind": "block",
+    "slot": "top",
+    "description": "毛玻璃吸顶导航，含 Logo、菜单与主按钮，移动端自动收起菜单。",
+    "html": "<header class='hb-nav'><div class='hb-nav-inner'><a class='hb-nav-logo' href='/'>Brand</a><nav class='hb-nav-links'><a href='#'>产品</a><a href='#'>方案</a><a href='#'>价格</a><a href='#'>文档</a></nav><a class='hb-nav-cta' href='#'>免费开始</a></div></header>",
+    "css": ".hb-nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);border-bottom:1px solid rgba(15,23,42,.08)}.hb-nav-inner{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:32px}.hb-nav-logo{font-size:20px;font-weight:800;color:#0f172a;text-decoration:none;letter-spacing:-.02em}.hb-nav-links{display:flex;gap:24px;flex:1}.hb-nav-links a{color:#475569;text-decoration:none;font-size:15px;transition:color .2s}.hb-nav-links a:hover{color:#0f172a}.hb-nav-cta{padding:9px 18px;border-radius:999px;background:#6366f1;color:#fff;text-decoration:none;font-size:14px;font-weight:600}@media(max-width:720px){.hb-nav-links{display:none}}",
+    "js": ""
+  },
+  {
+    "id": "block-hero",
+    "name": "Hero 首屏",
+    "category": "基础区块",
+    "kind": "block",
+    "slot": "flow",
+    "description": "居中大标题首屏，含徽标、主副按钮与渐变背景。",
+    "html": "<section class='hb-hero'><div class='hb-hero-inner'><span class='hb-hero-badge'>全新发布 · v2.0</span><h1 class='hb-hero-title'>用一句话<br>生成完整网站</h1><p class='hb-hero-sub'>从需求分析到代码落地，AI 全流程自动完成，几分钟上线你的产品主页。</p><div class='hb-hero-actions'><a class='hb-btn hb-btn-primary' href='#'>立即体验</a><a class='hb-btn hb-btn-ghost' href='#'>查看演示</a></div></div></section>",
+    "css": ".hb-hero{padding:96px 24px 72px;text-align:center;background:radial-gradient(60% 60% at 50% 0%,rgba(99,102,241,.16),transparent 70%)}.hb-hero-inner{max-width:860px;margin:0 auto}.hb-hero-badge{display:inline-block;padding:6px 14px;border-radius:999px;background:rgba(99,102,241,.12);color:#4f46e5;font-size:13px;font-weight:600}.hb-hero-title{margin:22px 0 18px;font-size:clamp(34px,6vw,68px);line-height:1.12;font-weight:800;letter-spacing:-.03em;color:#0f172a}.hb-hero-sub{margin:0 auto 32px;max-width:600px;font-size:17px;line-height:1.7;color:#475569}.hb-hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}.hb-btn{display:inline-block;padding:13px 26px;border-radius:999px;font-size:15px;font-weight:600;text-decoration:none;transition:transform .2s,box-shadow .2s}.hb-btn:hover{transform:translateY(-2px)}.hb-btn-primary{background:#6366f1;color:#fff;box-shadow:0 10px 24px rgba(99,102,241,.32)}.hb-btn-ghost{background:#fff;color:#0f172a;border:1px solid rgba(15,23,42,.12)}",
+    "js": ""
+  },
+  {
+    "id": "block-feature-grid",
+    "name": "特性网格",
+    "category": "基础区块",
+    "kind": "block",
+    "slot": "flow",
+    "description": "三列特性卡片，适合介绍产品能力。",
+    "html": "<section class='hb-features'><h2 class='hb-sec-title'>为什么选择我们</h2><div class='hb-feature-grid'><article class='hb-feature-card'><div class='hb-feature-icon'>⚡</div><h3>极速生成</h3><p>几分钟完成从需求到可运行网站的完整链路。</p></article><article class='hb-feature-card'><div class='hb-feature-icon'>🎯</div><h3>像素级还原</h3><p>结构化规划与自动校验，保证页面质量稳定。</p></article><article class='hb-feature-card'><div class='hb-feature-icon'>🧩</div><h3>组件化编辑</h3><p>点选页面元素即可修改，无需手写代码。</p></article></div></section>",
+    "css": ".hb-features{padding:72px 24px;max-width:1120px;margin:0 auto}.hb-sec-title{text-align:center;font-size:clamp(24px,3.2vw,36px);font-weight:800;color:#0f172a;margin:0 0 40px}.hb-feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}.hb-feature-card{padding:28px;border-radius:18px;background:#fff;border:1px solid rgba(15,23,42,.08);transition:transform .25s,box-shadow .25s}.hb-feature-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(15,23,42,.09)}.hb-feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(99,102,241,.12);margin-bottom:16px}.hb-feature-card h3{margin:0 0 8px;font-size:18px;color:#0f172a}.hb-feature-card p{margin:0;font-size:14px;line-height:1.7;color:#64748b}",
+    "js": ""
+  },
+  {
+    "id": "block-cta",
+    "name": "行动号召区",
+    "category": "基础区块",
+    "kind": "block",
+    "slot": "flow",
+    "description": "渐变背景的行动号召横幅，突出主按钮。",
+    "html": "<section class='hb-cta'><h2>准备好开始了吗？</h2><p>免费注册，几分钟内拥有你的第一个网站。</p><a class='hb-cta-btn' href='#'>免费开始</a></section>",
+    "css": ".hb-cta{margin:24px auto;max-width:1000px;padding:56px 24px;border-radius:24px;text-align:center;background:linear-gradient(120deg,#6366f1,#8b5cf6 55%,#0ea5e9);color:#fff}.hb-cta h2{margin:0 0 12px;font-size:clamp(24px,3.4vw,38px);font-weight:800}.hb-cta p{margin:0 0 26px;font-size:16px;opacity:.9}.hb-cta-btn{display:inline-block;padding:13px 30px;border-radius:999px;background:#fff;color:#4f46e5;font-weight:700;text-decoration:none;transition:transform .2s}.hb-cta-btn:hover{transform:translateY(-2px)}",
+    "js": ""
+  },
+  {
+    "id": "block-footer",
+    "name": "页脚",
+    "category": "基础区块",
+    "kind": "block",
+    "slot": "bottom",
+    "description": "三列链接页脚，含品牌说明与版权信息。",
+    "html": "<footer class='hb-footer'><div class='hb-footer-inner'><div class='hb-footer-brand'><strong>Brand</strong><p>让每个人都能轻松拥有自己的网站。</p></div><div class='hb-footer-cols'><div><h4>产品</h4><a href='#'>功能</a><a href='#'>价格</a></div><div><h4>资源</h4><a href='#'>文档</a><a href='#'>教程</a></div><div><h4>公司</h4><a href='#'>关于</a><a href='#'>联系</a></div></div></div><div class='hb-footer-bottom'>© 2026 Brand. All rights reserved.</div></footer>",
+    "css": ".hb-footer{margin-top:72px;padding:56px 24px 28px;background:#0f172a;color:#cbd5e1}.hb-footer-inner{max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}.hb-footer-brand{max-width:280px}.hb-footer-brand strong{display:block;font-size:20px;color:#fff;margin-bottom:10px}.hb-footer-brand p{margin:0;font-size:14px;line-height:1.7;color:#94a3b8}.hb-footer-cols{display:flex;gap:56px;flex-wrap:wrap}.hb-footer-cols h4{margin:0 0 12px;font-size:14px;color:#fff}.hb-footer-cols a{display:block;margin-bottom:8px;font-size:14px;color:#94a3b8;text-decoration:none;transition:color .2s}.hb-footer-cols a:hover{color:#fff}.hb-footer-bottom{max-width:1120px;margin:40px auto 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:#64748b}",
+    "js": ""
+  }
+]

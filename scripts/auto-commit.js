@@ -5,16 +5,25 @@
  * 效果：监听工作区文件变更，文件保存后静默 3 秒自动 git add + commit + push
  * 退出：Ctrl+C
  */
-const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
+const chokidar = require('chokidar')
 
 const ROOT = path.resolve(__dirname, '..')
 const DEBOUNCE_MS = 3000
 const RETRY_MS = 2000
 
-// 排除构建产物、依赖、git 内部目录和日志
-const EXCLUDE = /(^|[\\/])(\.git|node_modules|target|dist|logs|\.idea|\.vscode)([\\/]|$)|\.log$/
+// 排除目录和文件
+const IGNORED = [
+  '**/.git/**',
+  '**/node_modules/**',
+  '**/target/**',
+  '**/dist/**',
+  '**/logs/**',
+  '**/.idea/**',
+  '**/.vscode/**',
+  '**/*.log',
+]
 
 let timer = null
 let busy = false
@@ -38,7 +47,6 @@ function commitAndPush() {
   try {
     if (!hasChanges()) return
 
-    // 取变更文件名（最多 5 个）生成提交信息
     const files = run('git status --porcelain')
       .split('\n')
       .filter(Boolean)
@@ -53,7 +61,6 @@ function commitAndPush() {
     try {
       run('git push')
     } catch {
-      // 远程有新提交时先 rebase 再推
       run('git pull --rebase')
       run('git push')
     }
@@ -66,13 +73,27 @@ function commitAndPush() {
   }
 }
 
-// 防抖监听：变更后静默 DEBOUNCE_MS 才触发提交
-fs.watch(ROOT, { recursive: true }, (_event, filename) => {
-  if (!filename) return
-  if (EXCLUDE.test(filename)) return
+// 使用 chokidar 替代 fs.watch，解决 Windows 下事件丢失问题
+const watcher = chokidar.watch(ROOT, {
+  ignored: IGNORED,
+  persistent: true,
+  ignoreInitial: true,
+  awaitWriteFinish: {
+    stabilityThreshold: 500,
+    pollInterval: 100,
+  },
+})
+
+watcher.on('all', (_event, filePath) => {
   clearTimeout(timer)
   timer = setTimeout(commitAndPush, DEBOUNCE_MS)
 })
 
-console.log(`[auto-commit] 正在监听 ${ROOT}`)
-console.log(`[auto-commit] 文件保存后 ${DEBOUNCE_MS / 1000} 秒自动 commit + push，Ctrl+C 退出`)
+watcher.on('ready', () => {
+  console.log(`[auto-commit] 正在监听 ${ROOT}`)
+  console.log(`[auto-commit] 文件保存后 ${DEBOUNCE_MS / 1000} 秒自动 commit + push，Ctrl+C 退出`)
+})
+
+watcher.on('error', (err) => {
+  console.error(`[${time()}] 监听错误: ${err.message}`)
+})

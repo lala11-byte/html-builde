@@ -1,0 +1,220 @@
+:root {
+  --bg: #0c0d11;
+  --panel: #14161c;
+  --text: #f2f3f7;
+  --muted: #9aa0b0;
+  --accent: #4f7cff;
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 50% -10%, #1b2033 0%, var(--bg) 60%);
+  color: var(--text);
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 72px 24px 56px;
+}
+
+.page__header {
+  margin-bottom: 32px;
+}
+
+.page__eyebrow {
+  margin: 0 0 10px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.page__title {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.page__desc {
+  margin: 0;
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ---------- Carousel ---------- */
+
+.carousel {
+  position: relative;
+  outline: none;
+  border-radius: var(--radius);
+}
+
+.carousel:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.carousel__viewport {
+  overflow: hidden;
+  border-radius: var(--radius);
+  cursor: grab;
+}
+
+.carousel__viewport:active {
+  cursor: grabbing;
+}
+
+.carousel__container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+  margin: 0;
+}
+
+.carousel__slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  background: var(--panel);
+}
+
+.carousel__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.carousel__overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 96px 36px 30px;
+  background: linear-gradient(to top, rgba(6, 7, 10, 0.88) 0%, rgba(6, 7, 10, 0.45) 55%, transparent 100%);
+}
+
+.carousel__tag {
+  display: inline-block;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.carousel__title {
+  margin: 0 0 6px;
+  font-size: clamp(20px, 3.2vw, 30px);
+  letter-spacing: -0.01em;
+}
+
+.carousel__caption {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* 底部：圆点 + 计数 */
+.carousel__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 4px 10px;
+}
+
+.carousel__dots {
+  display: flex;
+  gap: 8px;
+}
+
+.carousel__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.carousel__dot.is-active {
+  width: 26px;
+  background: var(--accent);
+}
+
+.carousel__counter {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 进度条 */
+.carousel__progress {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.carousel__progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+}
+
+/* ---------- Footer ---------- */
+
+.page__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.page__footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.page__footer a:hover {
+  text-decoration: underline;
+}
+
+.page__footer code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 40px 16px;
+  }
+
+  .carousel__overlay {
+    padding: 72px 20px 20px;
+  }
+}

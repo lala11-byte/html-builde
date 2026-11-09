@@ -1,0 +1,102 @@
+[
+  {
+    "id": "text-split-reveal",
+    "name": "文字逐字浮现",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "标题按字符依次上浮淡入，适合首屏大标题。",
+    "html": "<h2 class='hb-split-reveal' data-hb-split='每个字都值得被看见'>每个字都值得被看见</h2>",
+    "css": ".hb-split-reveal{font-size:clamp(30px,5vw,60px);font-weight:800;line-height:1.2;letter-spacing:-.02em;color:#0f172a;margin:0}.hb-split-reveal .hb-char{display:inline-block;opacity:0;transform:translateY(24px);animation:hbCharIn .6s cubic-bezier(.22,1,.36,1) forwards}@keyframes hbCharIn{to{opacity:1;transform:translateY(0)}}",
+    "js": "(function(){document.querySelectorAll('.hb-split-reveal').forEach(function(el){if(el.dataset.hbReady)return;el.dataset.hbReady='1';var t=el.getAttribute('data-hb-split')||el.textContent;el.textContent='';t.split('').forEach(function(ch,i){var s=document.createElement('span');s.className='hb-char';s.textContent=ch===' '?'\\u00A0':ch;s.style.animationDelay=(i*0.04)+'s';el.appendChild(s);});});})();"
+  },
+  {
+    "id": "text-typewriter",
+    "name": "打字机效果",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "文字逐字打出并自动删除，循环播放多组文案。",
+    "html": "<div class='hb-typewriter'><span class='hb-type-text' data-hb-words='快速生成|像素级还原|一键上线'></span><span class='hb-type-cursor'></span></div>",
+    "css": ".hb-typewriter{display:inline-flex;align-items:center;font-size:clamp(26px,4vw,48px);font-weight:700;color:#111827}.hb-type-cursor{display:inline-block;width:3px;height:1.1em;margin-left:4px;background:#6366f1;animation:hbCursorBlink 1s steps(1) infinite}@keyframes hbCursorBlink{50%{opacity:0}}",
+    "js": "(function(){document.querySelectorAll('.hb-typewriter').forEach(function(box){if(box.dataset.hbReady)return;box.dataset.hbReady='1';var out=box.querySelector('.hb-type-text');if(!out)return;var words=(out.getAttribute('data-hb-words')||'').split('|').filter(Boolean);if(!words.length)return;var wi=0,ci=0,del=false;function tick(){var w=words[wi];ci+=del?-1:1;out.textContent=w.slice(0,ci);var wait=del?60:120;if(!del&&ci===w.length){del=true;wait=1400;}else if(del&&ci===0){del=false;wi=(wi+1)%words.length;wait=300;}setTimeout(tick,wait);}tick();});})();"
+  },
+  {
+    "id": "text-gradient-flow",
+    "name": "流光渐变文字",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "渐变色彩持续流动，适合强调型标题。",
+    "html": "<h2 class='hb-gradient-flow'>让创意随光流动</h2>",
+    "css": ".hb-gradient-flow{font-size:clamp(30px,5vw,60px);font-weight:800;margin:0;background:linear-gradient(90deg,#6366f1,#06b6d4,#a855f7,#f59e0b,#6366f1);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hbGradientFlow 6s linear infinite}@keyframes hbGradientFlow{to{background-position:300% 0}}",
+    "js": ""
+  },
+  {
+    "id": "text-scramble",
+    "name": "乱码解码",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "文字从随机字符逐步解码为真实内容，科技感强。",
+    "html": "<h2 class='hb-scramble' data-hb-text='解码未来'>解码未来</h2>",
+    "css": ".hb-scramble{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(28px,4.5vw,52px);font-weight:800;letter-spacing:.04em;color:#0f172a;margin:0}",
+    "js": "(function(){var chars='!<>-_\\\\/[]{}=+*^?#$%&@';document.querySelectorAll('.hb-scramble').forEach(function(el){if(el.dataset.hbReady)return;el.dataset.hbReady='1';var text=el.getAttribute('data-hb-text')||el.textContent;var frame=0;function run(){var out='';for(var i=0;i<text.length;i++){out+=i<frame?text[i]:chars[Math.floor(Math.random()*chars.length)];}el.textContent=out;if(frame>=text.length)return;frame+=1;setTimeout(run,60);}run();el.addEventListener('mouseenter',function(){frame=0;run();});});})();"
+  },
+  {
+    "id": "text-rotate-words",
+    "name": "词语轮换",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "标题中的关键词自动轮换，适合多受众场景。",
+    "html": "<h2 class='hb-rotate-words'>专为<span class='hb-rotor' data-hb-words='创作者|设计师|开发者'>创作者</span>而生</h2>",
+    "css": ".hb-rotate-words{font-size:clamp(28px,4.5vw,54px);font-weight:800;color:#0f172a;margin:0}.hb-rotor{display:inline-block;margin:0 .2em;background:linear-gradient(90deg,#6366f1,#0ea5e9);-webkit-background-clip:text;background-clip:text;color:transparent;transition:opacity .35s ease,transform .35s ease}.hb-rotor.hb-out{opacity:0;transform:translateY(-.35em)}",
+    "js": "(function(){document.querySelectorAll('.hb-rotor').forEach(function(el){if(el.dataset.hbReady)return;el.dataset.hbReady='1';var words=(el.getAttribute('data-hb-words')||'').split('|').filter(Boolean);if(words.length<2)return;var i=0;setInterval(function(){el.classList.add('hb-out');setTimeout(function(){i=(i+1)%words.length;el.textContent=words[i];el.classList.remove('hb-out');},350);},2200);});})();"
+  },
+  {
+    "id": "text-blur-reveal",
+    "name": "模糊聚焦",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "文字由模糊逐渐聚焦，滚动进入视口时触发。",
+    "html": "<h2 class='hb-blur-reveal' data-hb-text='清晰呈现每一个细节'>清晰呈现每一个细节</h2>",
+    "css": ".hb-blur-reveal{font-size:clamp(28px,4.5vw,54px);font-weight:800;color:#0f172a;margin:0;filter:blur(14px);opacity:0;transition:filter 1s ease,opacity 1s ease}.hb-blur-reveal.hb-in{filter:blur(0);opacity:1}",
+    "js": "(function(){var els=document.querySelectorAll('.hb-blur-reveal');if(!els.length)return;var io=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('hb-in');io.unobserve(e.target);}});},{threshold:.3});els.forEach(function(el){io.observe(el);});})();"
+  },
+  {
+    "id": "text-wave",
+    "name": "字母波浪",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "每个字符依次上下波动，轻松活泼。",
+    "html": "<h2 class='hb-wave'>一起摇摆起来</h2>",
+    "css": ".hb-wave{font-size:clamp(28px,4.5vw,54px);font-weight:800;color:#0f172a;margin:0}.hb-wave span{display:inline-block;animation:hbWave 1.6s ease-in-out infinite}@keyframes hbWave{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}",
+    "js": "(function(){document.querySelectorAll('.hb-wave').forEach(function(el){if(el.dataset.hbReady)return;el.dataset.hbReady='1';var t=el.textContent;el.textContent='';t.split('').forEach(function(ch,i){var s=document.createElement('span');s.textContent=ch===' '?'\\u00A0':ch;s.style.animationDelay=(i*0.08)+'s';el.appendChild(s);});});})();"
+  },
+  {
+    "id": "text-glitch",
+    "name": "故障闪烁",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "赛博故障风文字，适合潮流与科技主题。",
+    "html": "<h2 class='hb-glitch' data-hb-text='数字故障'>数字故障</h2>",
+    "css": ".hb-glitch{position:relative;font-family:ui-monospace,Menlo,monospace;font-size:clamp(28px,4.5vw,54px);font-weight:800;color:#0f172a;margin:0;letter-spacing:.03em}.hb-glitch::before,.hb-glitch::after{content:attr(data-hb-text);position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none}.hb-glitch::before{color:#06b6d4;clip-path:inset(0 0 55% 0);animation:hbGlitchA 2.4s infinite steps(2)}.hb-glitch::after{color:#f43f5e;clip-path:inset(55% 0 0 0);animation:hbGlitchB 2s infinite steps(2)}@keyframes hbGlitchA{0%,92%,100%{transform:translate(0,0)}94%{transform:translate(-3px,-2px)}96%{transform:translate(3px,1px)}}@keyframes hbGlitchB{0%,90%,100%{transform:translate(0,0)}93%{transform:translate(3px,2px)}97%{transform:translate(-2px,-1px)}}",
+    "js": "(function(){document.querySelectorAll('.hb-glitch').forEach(function(el){if(!el.getAttribute('data-hb-text'))el.setAttribute('data-hb-text',el.textContent);});})();"
+  },
+  {
+    "id": "text-highlight-sweep",
+    "name": "高亮扫过",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "文字背后高亮色块从左向右扫过，适合强调关键词。",
+    "html": "<h2 class='hb-highlight'>重点就在这里</h2>",
+    "css": ".hb-highlight{display:inline-block;font-size:clamp(28px,4.5vw,54px);font-weight:800;color:#0f172a;margin:0;background:linear-gradient(120deg,rgba(250,204,21,.85) 0%,rgba(250,204,21,.85) 50%,transparent 50%) no-repeat;background-size:0% 100%;background-position:0 88%;animation:hbHighlight 3.6s ease-in-out infinite}@keyframes hbHighlight{0%{background-size:0% 100%}45%,60%{background-size:100% 100%}100%{background-size:0% 100%}}",
+    "js": ""
+  },
+  {
+    "id": "text-count-up",
+    "name": "数字滚动",
+    "category": "文字动效",
+    "kind": "style",
+    "description": "数字从 0 增长到目标值，适合数据展示。",
+    "html": "<div class='hb-countup' data-hb-target='12800' data-hb-suffix='+'>0</div>",
+    "css": ".hb-countup{font-size:clamp(40px,7vw,80px);font-weight:800;color:#0f172a;font-variant-numeric:tabular-nums;line-height:1.1}",
+    "js": "(function(){document.querySelectorAll('.hb-countup').forEach(function(el){if(el.dataset.hbReady)return;el.dataset.hbReady='1';var target=parseFloat(el.getAttribute('data-hb-target'))||0;var suffix=el.getAttribute('data-hb-suffix')||'';var start=null;function step(ts){if(!start)start=ts;var p=Math.min((ts-start)/1600,1);var val=Math.floor(target*(1-Math.pow(1-p,3)));el.textContent=val.toLocaleString()+suffix;if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);});})();"
+  }
+]

@@ -7,9 +7,10 @@ spring:
   cloud:
     nacos:
       discovery:
+        enabled: false
         server-addr: 127.0.0.1:8848
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/project_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://127.0.0.1:3306/project_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,3 +24,9 @@ management:
     web:
       exposure:
         include: health,info
+
+# 作品广场展示作者昵称时跨库读取 user_db
+user-db:
+  url: jdbc:mysql://127.0.0.1:3306/user_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+  username: root
+  password: ${DB_PASSWORD:123456}

@@ -58,6 +58,7 @@ public class LocalRunService {
 
     /**
      * 启动生成的网站（同步执行 npm install + 启动 node server.js）
+     * 支持缺包自动安装 fallback：启动失败时检测 MissingModule，自动 npm install 后重试
      */
     public synchronized RunStatusVO start(Long taskId) {
         // 已在运行则直接返回状态
@@ -81,6 +82,16 @@ public class LocalRunService {
 
         int port = BASE_PORT + (int) (taskId % PORT_RANGE);
 
+        // 端口冲突自动顺延：默认端口可能被上次的残留 node 进程占用（EADDRINUSE），
+        // 此时自动向后查找空闲端口，避免启动失败
+        while (!isPortAvailable(port)) {
+            log.warn("taskId={} 端口 {} 已被占用，尝试顺延到下一个端口", taskId, port);
+            port++;
+            if (port > BASE_PORT + PORT_RANGE + 200) {
+                throw new BusinessException(2002, "无可用的空闲端口（端口段 " + port + " 全部被占用）");
+            }
+        }
+
         // 首次启动需要安装依赖
         if (!Files.exists(dir.resolve("node_modules"))) {
             appendLog(taskId, "[运行] 首次启动，正在安装依赖（npm install），可能需要几分钟...");
@@ -91,41 +102,144 @@ public class LocalRunService {
         appendLog(taskId, "[运行] 正在校验 server.js 语法...");
         validateSyntax(taskId, dir);
 
-        appendLog(taskId, "[运行] 正在本机启动网站服务（端口 " + port + "）...");
+        // 启动重试循环：检测缺包自动安装后重试（最多3次）
+        for (int attempt = 0; attempt < 3; attempt++) {
+            appendLog(taskId, "[运行] 正在本机启动网站服务（端口 " + port + "）"
+                    + (attempt > 0 ? " [重试第" + attempt + "次]" : ""));
+            try {
+                ProcessBuilder pb = new ProcessBuilder("node", "server.js");
+                pb.directory(dir.toFile());
+                pb.environment().put("PORT", String.valueOf(port));
+                pb.redirectErrorStream(true);
+
+                Process proc = pb.start();
+                processes.put(taskId, proc);
+                ports.put(taskId, port);
+
+                // 同步读取启动阶段输出，确保捕获到错误信息
+                StringBuilder startupOutput = new StringBuilder();
+                BufferedReader startupReader = new BufferedReader(
+                        new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8));
+
+                long deadline = System.currentTimeMillis() + 3000;
+                while (System.currentTimeMillis() < deadline && proc.isAlive()) {
+                    if (startupReader.ready()) {
+                        String line = startupReader.readLine();
+                        if (line != null) {
+                            startupOutput.append(line).append('\n');
+                            appendLog(taskId, "[server] " + line);
+                        }
+                    } else {
+                        Thread.sleep(100);
+                    }
+                }
+
+                // 如果进程已退出，清空剩余输出
+                if (!proc.isAlive()) {
+                    String line;
+                    while ((line = startupReader.readLine()) != null) {
+                        startupOutput.append(line).append('\n');
+                        appendLog(taskId, "[server] " + line);
+                    }
+                    startupReader.close();
+                    processes.remove(taskId);
+                    ports.remove(taskId);
+                    String errMsg = startupOutput.length() > 0
+                            ? startupOutput.toString().trim()
+                            : "(无错误输出)";
+
+                    // 检测缺包错误，自动安装缺失的包后重试
+                    String missingModule = extractMissingModule(errMsg);
+                    if (missingModule != null && attempt < 2) {
+                        appendLog(taskId, "[运行] 检测到缺失依赖: " + missingModule + "，正在自动安装...");
+                        installSinglePackage(taskId, dir, missingModule);
+                        appendLog(taskId, "[运行] " + missingModule + " 安装完成，重新启动...");
+                        continue;
+                    }
+
+                    throw new BusinessException(2002, "网站启动失败:\n" + errMsg);
+                }
+
+                // 进程存活，切换为异步消费剩余输出
+                final BufferedReader finalReader = startupReader;
+                Thread outputThread = new Thread(() -> consumeOutput(taskId, proc, finalReader));
+                outputThread.setDaemon(true);
+                outputThread.start();
+
+                appendLog(taskId, "[运行] 网站已启动: http://localhost:" + port);
+                log.info("taskId={} 本地运行已启动，端口 {}", taskId, port);
+                return buildStatus(taskId);
+
+            } catch (BusinessException e) {
+                throw e;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BusinessException(2002, "启动被中断");
+            } catch (Exception e) {
+                if (attempt < 2) {
+                    String missingModule = extractMissingModule(e.getMessage());
+                    if (missingModule != null) {
+                        appendLog(taskId, "[运行] 检测到缺失依赖: " + missingModule + "，正在自动安装...");
+                        installSinglePackage(taskId, dir, missingModule);
+                        appendLog(taskId, "[运行] " + missingModule + " 安装完成，重新启动...");
+                        continue;
+                    }
+                }
+                throw new BusinessException(2002, "网站启动失败: " + e.getMessage());
+            }
+        }
+
+        throw new BusinessException(2002, "网站启动失败：多次重试后仍无法启动");
+    }
+
+    /**
+     * 从错误信息中提取缺失的模块名
+     * 匹配 "Cannot find module 'xxx'" 或 "MODULE_NOT_FOUND" require stack 中的模块
+     */
+    private String extractMissingModule(String errMsg) {
+        if (errMsg == null) return null;
+        // 匹配 Cannot find module 'xxx'
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "Cannot find module '([^']+)'");
+        java.util.regex.Matcher matcher = pattern.matcher(errMsg);
+        if (matcher.find()) {
+            String moduleName = matcher.group(1);
+            // 排除相对路径引用（如 './config' './db' 等），只处理 npm 包名
+            if (moduleName.startsWith(".") || moduleName.startsWith("/")) {
+                return null;
+            }
+            return moduleName;
+        }
+        return null;
+    }
+
+    /**
+     * 安装单个 npm 包
+     */
+    private void installSinglePackage(Long taskId, Path dir, String packageName) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("node", "server.js");
+            ProcessBuilder pb = isWindows
+                    ? new ProcessBuilder("cmd", "/c", "npm", "install", packageName,
+                            "--no-audit", "--no-fund", "--loglevel=error")
+                    : new ProcessBuilder("npm", "install", packageName,
+                            "--no-audit", "--no-fund", "--loglevel=error");
             pb.directory(dir.toFile());
-            pb.environment().put("PORT", String.valueOf(port));
             pb.redirectErrorStream(true);
 
             Process proc = pb.start();
-            processes.put(taskId, proc);
-            ports.put(taskId, port);
-
-            // 异步消费进程输出，防止缓冲区写满阻塞，同时记录日志
-            Thread outputThread = new Thread(() -> consumeOutput(taskId, proc));
-            outputThread.setDaemon(true);
-            outputThread.start();
-
-            // 等待 2 秒确认进程存活（端口冲突等情况会立即退出）
-            Thread.sleep(2000);
-            if (!proc.isAlive()) {
-                processes.remove(taskId);
-                ports.remove(taskId);
-                throw new BusinessException(2002, "网站启动失败，请查看运行日志: " + lastLogs(taskId, 10));
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    appendLog(taskId, "[npm] " + line);
+                }
             }
-
-            appendLog(taskId, "[运行] 网站已启动: http://localhost:" + port);
-            log.info("taskId={} 本地运行已启动，端口 {}", taskId, port);
-            return buildStatus(taskId);
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new BusinessException(2002, "启动被中断");
+            if (!proc.waitFor(3, TimeUnit.MINUTES)) {
+                proc.destroyForcibly();
+                appendLog(taskId, "[npm] " + packageName + " 安装超时");
+            }
         } catch (Exception e) {
-            throw new BusinessException(2002, "网站启动失败: " + e.getMessage());
+            appendLog(taskId, "[npm] " + packageName + " 安装失败: " + e.getMessage());
         }
     }
 
@@ -181,6 +295,67 @@ public class LocalRunService {
     @PreDestroy
     public void shutdown() {
         processes.keySet().forEach(this::stop);
+    }
+
+    /**
+     * 获取任务分配的端口号（用于截图等场景构造 live URL）
+     * @return 端口号，未启动返回 null
+     */
+    public Integer getPort(Long taskId) {
+        return ports.get(taskId);
+    }
+
+    /**
+     * 检测端口是否可用（未被占用）
+     * Windows 上 ServerSocket 默认带 SO_REUSEADDR，端口被占用时也能 bind 成功，
+     * 所以改为主动连接：能连上就说明有服务在监听。
+     */
+    private boolean isPortAvailable(int port) {
+        return !canConnect("127.0.0.1", port) && !canConnect("::1", port);
+    }
+
+    private boolean canConnect(String host, int port) {
+        try (java.net.Socket socket = new java.net.Socket()) {
+            socket.connect(new java.net.InetSocketAddress(host, port), 300);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 公开的语法校验：对 server.js 执行 node --check，返回错误信息（null 表示语法正确）
+     * 供 GeneratorService 在 autoStartWithFix 之前做预校验
+     */
+    public String checkSyntaxOnly(Long taskId, Path dir) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("node", "--check", "server.js");
+            pb.directory(dir.toFile());
+            pb.redirectErrorStream(true);
+            Process proc = pb.start();
+            StringBuilder errors = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (errors.length() < 3000) {
+                        errors.append(line).append('\n');
+                    }
+                }
+            }
+            if (!proc.waitFor(15, TimeUnit.SECONDS)) {
+                proc.destroyForcibly();
+                return "server.js 语法校验超时";
+            }
+            if (proc.exitValue() != 0) {
+                appendLog(taskId, "[校验] 语法错误:\n" + errors);
+                return errors.toString().trim();
+            }
+            appendLog(taskId, "[校验] server.js 语法校验通过");
+            return null; // 语法正确
+        } catch (Exception e) {
+            return "语法校验执行失败: " + e.getMessage();
+        }
     }
 
     /**
@@ -258,9 +433,8 @@ public class LocalRunService {
         }
     }
 
-    private void consumeOutput(Long taskId, Process proc) {
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8))) {
+    private void consumeOutput(Long taskId, Process proc, BufferedReader reader) {
+        try (reader) {
             String line;
             while ((line = reader.readLine()) != null) {
                 appendLog(taskId, "[server] " + line);

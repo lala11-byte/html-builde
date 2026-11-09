@@ -3,18 +3,24 @@ package com.htmlbuilder.generator.vo;
 public class TaskVO {
     private Long id;
     private String status;
+    private String prompt;
     private String progress;
     private String downloadUrl;
     private String previewUrl;
+    private String screenshotUrl;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getPrompt() { return prompt; }
+    public void setPrompt(String prompt) { this.prompt = prompt; }
     public String getProgress() { return progress; }
     public void setProgress(String progress) { this.progress = progress; }
     public String getDownloadUrl() { return downloadUrl; }
     public void setDownloadUrl(String downloadUrl) { this.downloadUrl = downloadUrl; }
     public String getPreviewUrl() { return previewUrl; }
     public void setPreviewUrl(String previewUrl) { this.previewUrl = previewUrl; }
+    public String getScreenshotUrl() { return screenshotUrl; }
+    public void setScreenshotUrl(String screenshotUrl) { this.screenshotUrl = screenshotUrl; }
 }

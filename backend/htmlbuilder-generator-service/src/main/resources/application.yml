@@ -4,12 +4,19 @@ server:
 spring:
   application:
     name: htmlbuilder-generator-service
+  # 本地密钥配置（不入库）：从以下任一位置读取，存在即生效
+  config:
+    import:
+      - optional:file:./application-local.yml
+      - optional:file:./htmlbuilder-generator-service/application-local.yml
+      - optional:file:./backend/htmlbuilder-generator-service/application-local.yml
   cloud:
     nacos:
       discovery:
+        enabled: false
         server-addr: 127.0.0.1:8848
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/generator_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://127.0.0.1:3306/generator_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -18,11 +25,20 @@ spring:
       mode: always
       schema-locations: classpath:db/init.sql
 
-# DeepSeek-v4-pro API 配置（通过网关调用）
-deepseek:
-  api-key: ${TOKENHUB_API_KEY:}
-  base-url: http://192.200.1.213:18086/v1/messages
-  model: deepseek-v4-pro
+# LLM API 配置（DeepSeek 官方，OpenAI 兼容模式，端点自动拼接 /chat/completions）
+# 密钥请通过环境变量 LLM_API_KEY 或本地 application-local.yml 提供，不要写回本文件
+llm:
+  api-key: ${LLM_API_KEY:}
+  base-url: https://api.deepseek.com
+  model: deepseek-flash
+  # 轻量任务（需求分析、区块生成等）用非思考模型：deepseek-flash 的推理 token 会计入 max_tokens，易截断 JSON
+  fast-model: deepseek-chat
+
+# LangSmith 追踪配置（api-key 为空时自动关闭追踪）
+langsmith:
+  api-key: ${LANGSMITH_API_KEY:}
+  project: html-builder
+  endpoint: https://api.smith.langchain.com
 
 management:
   endpoints:

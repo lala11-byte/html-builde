@@ -30,6 +30,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             "/api/v1/generator/progress/",
             "/api/v1/generator/download/",
             "/api/v1/generator/preview/",
+            "/api/v1/generator/screenshot/",
             "/actuator/health"
     );
 
@@ -59,10 +60,17 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
         Long userId = JwtUtil.getUserIdFromToken(token, jwtSecret);
         String username = JwtUtil.getUsernameFromToken(token, jwtSecret);
+        String role = JwtUtil.getRoleFromToken(token, jwtSecret);
+
+        // 后台管理接口仅管理员可访问
+        if (path.startsWith("/api/v1/admin/") && !"admin".equals(role)) {
+            return writeErrorResponse(exchange, 403, "无管理员权限");
+        }
 
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header("X-User-Id", String.valueOf(userId))
                 .header("X-User-Name", username)
+                .header("X-User-Role", role)
                 .build();
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
@@ -73,10 +81,14 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> writeUnauthorizedResponse(ServerWebExchange exchange, String message) {
+        return writeErrorResponse(exchange, 401, message);
+    }
+
+    private Mono<Void> writeErrorResponse(ServerWebExchange exchange, int code, String message) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.OK);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        Result<?> result = Result.fail(401, message);
+        Result<?> result = Result.fail(code, message);
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(result);
             DataBuffer buffer = response.bufferFactory().wrap(bytes);

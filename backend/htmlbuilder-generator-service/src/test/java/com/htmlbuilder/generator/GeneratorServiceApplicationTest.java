@@ -1,6 +1,8 @@
 package com.htmlbuilder.generator;
 
-import com.htmlbuilder.generator.agent.AgentOrchestrator;
+import com.htmlbuilder.generator.agent.AnthropicChatLanguageModel;
+import com.htmlbuilder.generator.agent.FastChatLanguageModel;
+import com.htmlbuilder.generator.agent.graph.ProgressRegistry;
 import com.htmlbuilder.generator.mapper.GenerationTaskMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +18,13 @@ class GeneratorServiceApplicationTest {
     private GenerationTaskMapper generationTaskMapper;
 
     @MockBean
-    private AgentOrchestrator agentOrchestrator;
+    private AnthropicChatLanguageModel anthropicChatLanguageModel;
+
+    @MockBean
+    private FastChatLanguageModel fastChatLanguageModel;
+
+    @MockBean
+    private ProgressRegistry progressRegistry;
 
     @Test
     void contextLoads() {

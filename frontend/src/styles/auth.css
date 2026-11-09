@@ -1,0 +1,120 @@
+﻿/* 登录页 / 注册页共用视觉规范 */
+.auth-page {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #efefef;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+/* 背景：手绘线框稿整体完整展示（不裁切），空白处用 #efefef */
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #efefef url('/auth-bg.jpg') center / contain no-repeat;
+}
+.auth-card {
+  position: relative;
+  width: 420px;
+  padding: 40px 36px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.48));
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 20px;
+  box-shadow:
+    0 24px 60px rgba(30, 58, 138, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  z-index: 1;
+}
+.auth-head {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffffff, #eef4ff);
+  margin-bottom: 14px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
+}
+.auth-logo svg {
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 4px 10px rgba(37, 99, 235, 0.28));
+}
+.auth-title {
+  width: min(100%, 230px);
+  margin: 0 auto 4px;
+  color: #1e1b4b;
+}
+.auth-subtitle {
+  margin: 0;
+  min-height: 20px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #6b7280;
+}
+.auth-card .auth-form .el-form-item__label {
+  font-weight: 500;
+  color: #374151;
+  padding-bottom: 4px;
+}
+.auth-card .auth-form .el-input__wrapper {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9),
+    inset 0 1px 2px rgba(255, 255, 255, 0.9);
+  transition: all 0.2s;
+}
+.auth-card .auth-form .el-input__wrapper:hover {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.6);
+}
+.auth-card .auth-form .el-input__wrapper.is-focus {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px #2563eb,
+    0 0 0 4px rgba(37, 99, 235, 0.16);
+}
+.auth-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #2563eb, #0284c7);
+  border: none;
+  transition: all 0.3s;
+}
+.auth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+}
+.auth-btn:active {
+  transform: translateY(0);
+}
+.auth-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+.auth-footer .link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.2s;
+}
+.auth-footer .link:hover {
+  color: #1d4ed8;
+}

@@ -18,21 +18,28 @@ public class JwtUtil {
     }
 
     public static String generateAccessToken(Long userId, String username, String secret) {
-        return buildToken(userId, username, secret, ACCESS_EXPIRATION);
+        return buildToken(userId, username, null, secret, ACCESS_EXPIRATION);
+    }
+
+    public static String generateAccessToken(Long userId, String username, String role, String secret) {
+        return buildToken(userId, username, role, secret, ACCESS_EXPIRATION);
     }
 
     public static String generateRefreshToken(Long userId, String username, String secret) {
-        return buildToken(userId, username, secret, REFRESH_EXPIRATION);
+        return buildToken(userId, username, null, secret, REFRESH_EXPIRATION);
     }
 
-    private static String buildToken(Long userId, String username, String secret, long expiration) {
-        return Jwts.builder()
+    private static String buildToken(Long userId, String username, String role, String secret, long expiration) {
+        io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getKey(secret))
-                .compact();
+                .signWith(getKey(secret));
+        if (role != null && !role.isBlank()) {
+            builder.claim("role", role);
+        }
+        return builder.compact();
     }
 
     public static Claims parseToken(String token, String secret) {
@@ -58,5 +65,10 @@ public class JwtUtil {
 
     public static String getUsernameFromToken(String token, String secret) {
         return parseToken(token, secret).getSubject();
+    }
+
+    public static String getRoleFromToken(String token, String secret) {
+        Object role = parseToken(token, secret).get("role");
+        return role == null ? "user" : role.toString();
     }
 }

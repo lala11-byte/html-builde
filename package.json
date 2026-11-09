@@ -1,0 +1,43 @@
+{
+  "name": "html-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "auto-commit": "node scripts/auto-commit.js",
+    "sync": "node scripts/sync-to-remote.js",
+    "sync:5090": "node scripts/sync-to-remote.js --server gpu-5090",
+    "sync:v100": "node scripts/sync-to-remote.js --server gpu-v100",
+    "sync:all": "node scripts/sync-to-remote.js --all",
+    "sync:watch": "node scripts/sync-to-remote.js --watch",
+    "sync:watch:v100": "node scripts/sync-to-remote.js --watch --server gpu-v100",
+    "sync:backend": "node scripts/sync-to-remote.js --dir backend",
+    "sync:frontend": "node scripts/sync-to-remote.js --dir frontend",
+    "remote": "node scripts/remote-exec.js",
+    "remote:v100": "node scripts/remote-exec.js --server gpu-v100",
+    "remote:shell": "node scripts/remote-exec.js --interactive",
+    "remote:shell:v100": "node scripts/remote-exec.js --interactive --server gpu-v100",
+    "servers": "node scripts/remote-exec.js --list",
+    "setup-ssh": "node scripts/setup-ssh.js",
+    "check-remote": "node scripts/check-remote.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lala11-byte/html-builde.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lala11-byte/html-builde/issues"
+  },
+  "homepage": "https://github.com/lala11-byte/html-builde#readme",
+  "dependencies": {
+    "chokidar": "^5.0.0",
+    "ssh2": "^1.16.0"
+  }
+}

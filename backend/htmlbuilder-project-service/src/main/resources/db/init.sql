@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS project (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id BIGINT NOT NULL,
   name VARCHAR(50) NOT NULL,
+  screenshot_url VARCHAR(500) DEFAULT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_user_id (user_id)
@@ -20,4 +21,15 @@ CREATE TABLE IF NOT EXISTS page (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_project_id (project_id)
+);
+
+-- 项目点赞：同一用户对同一项目仅一条记录
+CREATE TABLE IF NOT EXISTS project_like (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  project_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_project_user (project_id, user_id),
+  INDEX idx_pl_project_id (project_id),
+  INDEX idx_pl_user_id (user_id)
 );

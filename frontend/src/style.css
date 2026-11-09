@@ -1,296 +1,271 @@
+﻿/* ============================================================
+   全局设计系统：Glassmorphism（玻璃磨砂）
+   原理：半透明背景 + backdrop-filter blur/saturate 模糊背后内容，
+   细高光边框模拟玻璃边缘反光，柔和外阴影制造悬浮感。
+   背景必须足够「彩色 / 有图像感」，模糊效果才明显，
+   因此这里用固定的彩色渐变 + 极光光斑作为整站底层。
+   ============================================================ */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* 玻璃面板通用变量 */
+  --glass-bg: rgba(255, 255, 255, 0.44);
+  --glass-bg-strong: rgba(255, 255, 255, 0.66);
+  --glass-bg-soft: rgba(255, 255, 255, 0.28);
+  --glass-bg-dark: rgba(12, 28, 58, 0.78);
+  --glass-blur: blur(22px) saturate(200%);
+  --glass-blur-heavy: blur(34px) saturate(210%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.72);
+  --glass-border-dim: 1px solid rgba(255, 255, 255, 0.28);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.75), inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+  --glass-shadow: 0 14px 40px rgba(30, 58, 138, 0.16);
+  --glass-shadow-hover: 0 22px 56px rgba(30, 58, 138, 0.26);
+  --glass-radius: 16px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Element Plus 主题色与圆角 */
+  --el-color-primary: #2563eb;
+  --el-color-primary-light-3: #60a5fa;
+  --el-color-primary-light-5: #7dd3fc;
+  --el-color-primary-light-7: #bae6fd;
+  --el-color-primary-light-9: #eff6ff;
+  --el-color-primary-dark-2: #1d4ed8;
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html,
+body {
+  min-height: 100%;
 }
 
 body {
   margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
-}
-
-#app {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
   padding: 0;
-  display: flex;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* 基底色与入口页保持一致，避免首屏出现深色/彩色闪屏；各页面自带背景 */
+  background-color: #fefdfd;
+}
+
+/* 全站细滚动条（玻璃内嵌滚动区统一观感） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.32);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
+}
+
+/* ============================================================
+   Element Plus 玻璃风统一：输入框 / 按钮 / 弹窗 / 下拉 / 分页
+   ============================================================ */
+
+/* 输入框 / 下拉框：半透明玻璃底 + 高光内描边，聚焦时外发光 */
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+  background-color: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) inset, 0 0 0 1px rgba(203, 213, 225, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: box-shadow 0.22s ease, background-color 0.22s ease;
+}
+.el-input__wrapper:hover,
+.el-select__wrapper:hover,
+.el-textarea__inner:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 0 0 1px rgba(96, 165, 250, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-textarea__inner:focus {
+  background-color: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 0 0 1px #2563eb inset, 0 0 0 4px rgba(37, 99, 235, 0.18),
+    0 8px 22px rgba(37, 99, 235, 0.16);
+}
+.el-select__placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+.el-input__inner,
+.el-textarea__inner {
+  color: #1e293b;
+  font-weight: 500;
+}
+.el-input__inner::placeholder,
+.el-textarea__inner::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+.el-input__count,
+.el-input .el-input__count-inner {
+  background: transparent;
+  color: #94a3b8;
+}
+.el-form-item__label {
+  color: #334155;
+  font-weight: 600;
+}
+
+/* 按钮：统一圆角与过渡，主按钮为渐变玻璃质感 */
+.el-button {
+  border-radius: 10px;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.el-button--primary {
+  background: linear-gradient(135deg, #2563eb, #0284c7);
+  border: none;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background: linear-gradient(135deg, #1d4ed8, #0369a1);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.36);
+}
+.el-button--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+.el-button.is-text,
+.el-button.is-link {
+  border-radius: 8px;
+}
+
+/* 弹窗：更厚的玻璃层 + 柔和遮罩模糊 */
+.el-overlay {
+  background-color: rgba(15, 36, 74, 0.34);
+  -webkit-backdrop-filter: blur(6px) saturate(150%);
+  backdrop-filter: blur(6px) saturate(150%);
+}
+.el-dialog {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.84));
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  backdrop-filter: var(--glass-blur-heavy);
+  box-shadow: 0 30px 80px rgba(30, 58, 138, 0.3), var(--glass-highlight);
+}
+.el-dialog__title {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+/* 下拉 / 气泡卡片：与弹窗同一套玻璃语言 */
+.el-popper.is-light {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 18px 44px rgba(30, 58, 138, 0.2), var(--glass-highlight);
+}
+.el-dropdown-menu {
+  padding: 6px;
+}
+.el-dropdown-menu__item {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* 分页：玻璃胶囊按钮 */
+.el-pagination button,
+.el-pager li {
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+.el-pager li:hover,
+.el-pagination button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  color: #1e40af;
+}
+.el-pager li.is-active {
+  background: linear-gradient(135deg, #2563eb, #0284c7);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.32);
+}
+
+/* 消息提示：玻璃卡片 */
+.el-message {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 16px 36px rgba(30, 58, 138, 0.18);
+}
+
+/* ============================================================
+   右上角用户胶囊：上半身剪影 + 昵称 + 下拉箭头
+   ============================================================ */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+  height: 38px;
+  padding: 0 12px 0 4px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.52));
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 6px 18px rgba(30, 58, 138, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.22s ease;
 }
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.user-chip:hover {
+  transform: translateY(-1px);
+  border-color: #fff;
+  box-shadow: 0 10px 26px rgba(30, 58, 138, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.user-chip-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #eff6ff, #e0f2fe);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+}
+.user-chip-avatar svg {
+  width: 22px;
+  height: 22px;
+}
+.user-chip-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1;
+}
+.user-chip-caret {
+  width: 13px;
+  height: 13px;
+  color: #94a3b8;
+  transition: transform 0.22s ease;
+}
+.user-chip:hover .user-chip-caret {
+  color: #2563eb;
+  transform: translateY(1px);
 }

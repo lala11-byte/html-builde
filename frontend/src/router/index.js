@@ -4,6 +4,11 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
+      path: '/',
+      name: 'Landing',
+      component: () => import('../views/Landing.vue')
+    },
+    {
       path: '/login',
       name: 'Login',
       component: () => import('../views/Login.vue')
@@ -19,6 +24,17 @@ const router = createRouter({
       component: () => import('../views/Workspace.vue')
     },
     {
+      path: '/community',
+      name: 'Community',
+      component: () => import('../views/Community.vue')
+    },
+    {
+      path: '/admin',
+      name: 'Admin',
+      component: () => import('../views/Admin.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
       path: '/editor/:projectId/:pageId',
       name: 'Editor',
       component: () => import('../views/Editor.vue')
@@ -30,11 +46,14 @@ const router = createRouter({
   ]
 })
 
-// 路由守卫：未登录跳转登录页
+// 路由守卫：未登录跳转登录页；后台管理需要管理员角色
 router.beforeEach((to) => {
   const token = localStorage.getItem('accessToken')
-  if (!token && to.name !== 'Login' && to.name !== 'Register') {
+  if (!token && to.name !== 'Landing' && to.name !== 'Login' && to.name !== 'Register') {
     return { name: 'Login' }
+  }
+  if (to.meta.requiresAdmin && localStorage.getItem('role') !== 'admin') {
+    return { name: 'Workspace' }
   }
 })
 

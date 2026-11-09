@@ -6,11 +6,15 @@ import com.htmlbuilder.project.dto.CreateProjectDTO;
 import com.htmlbuilder.project.dto.UpdatePageDTO;
 import com.htmlbuilder.project.dto.UpdateProjectDTO;
 import com.htmlbuilder.project.service.ProjectService;
+import com.htmlbuilder.project.vo.CommunityProjectVO;
+import com.htmlbuilder.project.vo.LikeResultVO;
 import com.htmlbuilder.project.vo.PageVO;
 import com.htmlbuilder.project.vo.ProjectVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/projects")
@@ -35,6 +39,23 @@ public class ProjectController {
         return Result.success(projectService.listProjects(userId, page, size));
     }
 
+    /** 作品广场：查看其他用户已生成的成品项目，支持最新/最喜爱/综合排序与搜索 */
+    @GetMapping("/community")
+    public Result<Page<CommunityProjectVO>> community(@RequestHeader("X-User-Id") Long userId,
+                                                      @RequestParam(defaultValue = "1") int page,
+                                                      @RequestParam(defaultValue = "12") int size,
+                                                      @RequestParam(defaultValue = "comprehensive") String sort,
+                                                      @RequestParam(required = false) String keyword) {
+        return Result.success(projectService.listCommunityProjects(userId, page, size, sort, keyword));
+    }
+
+    /** 点赞 / 取消点赞 */
+    @PostMapping("/{id}/like")
+    public Result<LikeResultVO> like(@RequestHeader("X-User-Id") Long userId,
+                                     @PathVariable Long id) {
+        return Result.success(projectService.toggleLike(userId, id));
+    }
+
     @PutMapping("/{id}")
     public Result<ProjectVO> update(@RequestHeader("X-User-Id") Long userId,
                                     @PathVariable Long id,
@@ -46,6 +67,13 @@ public class ProjectController {
     public Result<Void> delete(@RequestHeader("X-User-Id") Long userId,
                                @PathVariable Long id) {
         projectService.deleteProject(userId, id);
+        return Result.success(null);
+    }
+
+    @PutMapping("/{id}/screenshot")
+    public Result<Void> updateScreenshot(@PathVariable Long id,
+                                         @RequestBody Map<String, String> body) {
+        projectService.updateScreenshot(id, body.get("screenshotUrl"));
         return Result.success(null);
     }
 
